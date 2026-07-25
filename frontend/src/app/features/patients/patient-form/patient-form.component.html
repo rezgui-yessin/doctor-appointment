@@ -1,0 +1,40 @@
+<div class="page-shell narrow">
+  <header class="page-head">
+    <span class="eyebrow">Your record</span>
+    <h1>Profile</h1>
+    <p class="sub">Keep this current so doctors and reminder emails reach the right place.</p>
+  </header>
+
+  <app-spinner *ngIf="loading()" label="Loading your profile…"></app-spinner>
+
+  <form class="card form-card" *ngIf="!loading()" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="fullName">Full name</label>
+      <input id="fullName" formControlName="fullName" placeholder="Jordan Blake"
+             [class.invalid]="form.controls.fullName.invalid && form.controls.fullName.touched">
+      <span class="error" *ngIf="form.controls.fullName.invalid && form.controls.fullName.touched">Enter your full name.</span>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" formControlName="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input id="phone" formControlName="phone" placeholder="+1 555 0100">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="dob">Date of birth</label>
+      <input id="dob" type="date" formControlName="dateOfBirth">
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-accent" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save profile' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,225 @@
+/* ============================================================
+   CHARTWELL DESIGN SYSTEM
+   Concept: the physician's day-ledger — ruled paper, index-card
+   records, and a stamped-confirmation moment for booking.
+   ============================================================ */
+
+:root {
+  /* Palette — calming health & wellness green */
+  --ink: #1B3A2C;
+  --ink-soft: #3D5A4B;
+  --paper: #F5F7F1;
+  --paper-raised: #FFFFFF;
+  --line: #DCE3D5;
+  --line-strong: #C3CDB8;
+  --sage: #3F7D69;
+  --sage-soft: #E1EEE6;
+  --amber: #D9A441;
+  --amber-soft: #FBF0DC;
+  --brick: #B14B33;
+  --brick-soft: #F6E4DD;
+  --slate: #66756C;
+
+  /* Type */
+  --font-display: 'Fraunces', 'Iowan Old Style', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Rhythm */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-card: 0 1px 2px rgba(24, 35, 56, 0.04), 0 6px 20px rgba(24, 35, 56, 0.06);
+  --shadow-raised: 0 4px 10px rgba(24, 35, 56, 0.08), 0 14px 34px rgba(24, 35, 56, 0.10);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 27px,
+      rgba(195, 205, 184, 0.35) 28px
+    ),
+    var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 0.4em 0;
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: 2.1rem; font-weight: 700; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.15rem; }
+
+p { margin: 0 0 1em 0; }
+
+a { color: var(--sage); text-decoration: none; }
+
+button, input, select, textarea { font-family: inherit; }
+
+::selection { background: var(--amber-soft); color: var(--ink); }
+
+/* Focus ring — always visible, never suppressed */
+:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ===== Reusable primitives (used across feature components) ===== */
+
+.card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 500;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  line-height: 1;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-primary:hover:not(:disabled) { background: var(--ink-soft); }
+
+.btn-accent {
+  background: var(--amber);
+  color: var(--ink);
+}
+.btn-accent:hover:not(:disabled) { box-shadow: var(--shadow-raised); }
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+.btn-ghost:hover:not(:disabled) { background: rgba(0,0,0,0.03); }
+
+.btn-danger {
+  background: transparent;
+  border-color: var(--brick);
+  color: var(--brick);
+}
+.btn-danger:hover:not(:disabled) { background: var(--brick-soft); }
+
+.btn-sm { padding: 0.42rem 0.8rem; font-size: 0.8rem; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+.field label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.field input,
+.field select,
+.field textarea {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  background: var(--paper-raised);
+  color: var(--ink);
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--sage);
+}
+.field .error {
+  color: var(--brick);
+  font-size: 0.76rem;
+}
+.field input.invalid, .field select.invalid { border-color: var(--brick); }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.55rem;
+  border-radius: 100px;
+  font-weight: 500;
+}
+.tag-pending { background: var(--amber-soft); color: #8a5a1c; }
+.tag-confirmed { background: var(--sage-soft); color: var(--sage); }
+.tag-cancelled { background: var(--brick-soft); color: var(--brick); }
+.tag-completed { background: #E7E9EC; color: var(--slate); }
+
+.page-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 2.25rem 2rem 4rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  color: var(--slate);
+}
+.empty-state .glyph {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: var(--line-strong);
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  .page-shell { padding: 1.5rem 1rem 3rem; }
+}

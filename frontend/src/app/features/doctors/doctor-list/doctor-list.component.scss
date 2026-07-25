@@ -1,0 +1,58 @@
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+.page-head h1 { margin-top: 0.3rem; }
+
+.search-row {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.75rem;
+}
+.search-input {
+  flex: 1;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.9rem;
+  background: var(--paper-raised);
+}
+.search-input:focus { border-color: var(--sage); outline: none; }
+
+.roster {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.doctor-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1.35rem;
+  position: relative;
+}
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--sage-soft);
+  flex-shrink: 0;
+}
+.info { flex: 1; min-width: 0; }
+.info h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
+.meta { color: var(--slate); font-size: 0.8rem; margin: 0.3rem 0 0; }
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-end;
+}
+
+@media (max-width: 760px) {
+  .roster { grid-template-columns: 1fr; }
+  .doctor-card { flex-direction: column; }
+  .actions { flex-direction: row; align-self: flex-start; }
+}

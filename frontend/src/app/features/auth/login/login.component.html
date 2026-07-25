@@ -1,0 +1,65 @@
+<div class="auth-shell">
+  <section class="showcase">
+    <img class="showcase-photo" src="https://images.unsplash.com/photo-1758691462954-e6fa5005474b?w=1400&q=80&auto=format&fit=crop" alt="Doctor consulting with a patient at a clinic desk">
+    <div class="showcase-scrim"></div>
+    <div class="showcase-inner">
+      <span class="eyebrow">The day sheet</span>
+      <h1>Every visit,<br>kept in order.</h1>
+      <p class="lede">Chartwell keeps doctors, patients, and schedules on one ruled page &mdash; nothing double-booked, nothing lost.</p>
+
+      <div class="ledger-card" aria-hidden="true">
+        <div class="ledger-head">
+          <span>TUE&nbsp;&nbsp;14</span>
+          <span class="ledger-head-dot"></span>
+        </div>
+        <div class="ledger-row" *ngFor="let r of [
+          {t:'08:30', n:'Dr. Alvarez · N. Osei', s:'confirmed'},
+          {t:'09:00', n:'Dr. Alvarez · open', s:'open'},
+          {t:'09:30', n:'Dr. Chen · R. Blake', s:'pending'},
+          {t:'10:00', n:'Dr. Chen · open', s:'open'}
+        ]">
+          <span class="time">{{ r.t }}</span>
+          <span class="who">{{ r.n }}</span>
+          <span class="stamp" [class]="'stamp-' + r.s">{{ r.s }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="form-side">
+    <div class="form-card card">
+      <span class="eyebrow">Sign in</span>
+      <h2>Welcome back</h2>
+      <p class="sub">Enter your credentials to reach your schedule.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" placeholder="you@clinic.com"
+                 [class.invalid]="form.controls.email.invalid && form.controls.email.touched" autocomplete="email">
+          <span class="error" *ngIf="form.controls.email.invalid && form.controls.email.touched">Enter a valid email address.</span>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="password-row">
+            <input [type]="showPassword() ? 'text' : 'password'" id="password" formControlName="password"
+                   placeholder="••••••••" autocomplete="current-password"
+                   [class.invalid]="form.controls.password.invalid && form.controls.password.touched">
+            <button type="button" class="toggle" (click)="showPassword.set(!showPassword())">
+              {{ showPassword() ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+          <span class="error" *ngIf="form.controls.password.invalid && form.controls.password.touched">Password must be at least 6 characters.</span>
+        </div>
+
+        <button type="submit" class="btn btn-accent full" [disabled]="loading()">
+          <app-spinner *ngIf="loading()" [inline]="true"></app-spinner>
+          <span *ngIf="!loading()">Sign in</span>
+        </button>
+      </form>
+
+      <p class="switch">New to Chartwell? <a routerLink="/register">Create an account</a></p>
+    </div>
+  </section>
+</div>

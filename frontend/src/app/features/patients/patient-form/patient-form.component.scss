@@ -1,0 +1,22 @@
+.narrow { max-width: 560px; }
+.page-head { margin-bottom: 1.5rem; }
+.page-head h1 { margin-top: 0.3rem; }
+.sub { color: var(--slate); font-size: 0.88rem; }
+
+.form-card { padding: 2rem; }
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 560px) {
+  .two-col { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,54 @@
+<div class="page-shell narrow">
+  <header class="page-head">
+    <span class="eyebrow">Roster</span>
+    <h1>{{ isEdit ? 'Edit doctor' : 'Add a doctor' }}</h1>
+    <p class="sub">Set the specialization and shift hours patients will see when booking.</p>
+  </header>
+
+  <app-spinner *ngIf="loading()" label="Loading profile…"></app-spinner>
+
+  <form class="card form-card" *ngIf="!loading()" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="fullName">Full name</label>
+      <input id="fullName" formControlName="fullName" placeholder="Dr. Maria Alvarez"
+             [class.invalid]="form.controls.fullName.invalid && form.controls.fullName.touched">
+      <span class="error" *ngIf="form.controls.fullName.invalid && form.controls.fullName.touched">Enter the doctor's full name.</span>
+    </div>
+
+    <div class="field">
+      <label for="specialization">Specialization</label>
+      <input id="specialization" formControlName="specialization" placeholder="Cardiology"
+             [class.invalid]="form.controls.specialization.invalid && form.controls.specialization.touched">
+      <span class="error" *ngIf="form.controls.specialization.invalid && form.controls.specialization.touched">Specialization is required.</span>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" formControlName="email" placeholder="doctor@clinic.com">
+      </div>
+      <div class="field">
+        <label for="phone">Phone</label>
+        <input id="phone" formControlName="phone" placeholder="+1 555 0100">
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="field">
+        <label for="shiftStart">Shift start</label>
+        <input id="shiftStart" type="time" formControlName="shiftStart">
+      </div>
+      <div class="field">
+        <label for="shiftEnd">Shift end</label>
+        <input id="shiftEnd" type="time" formControlName="shiftEnd">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/doctors" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-accent" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : (isEdit ? 'Save changes' : 'Add doctor') }}
+      </button>
+    </div>
+  </form>
+</div>

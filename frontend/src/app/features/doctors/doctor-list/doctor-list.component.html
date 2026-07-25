@@ -1,0 +1,48 @@
+<div class="page-shell">
+  <header class="page-head">
+    <div>
+      <span class="eyebrow">Roster</span>
+      <h1>Doctors</h1>
+    </div>
+    <a *ngIf="auth.role() === 'ADMIN'" routerLink="/doctors/new" class="btn btn-accent">+ Add doctor</a>
+  </header>
+
+  <div class="search-row">
+    <input type="search" [(ngModel)]="query" (keyup.enter)="fetch()" placeholder="Filter by specialization, e.g. Cardiology" class="search-input">
+    <button class="btn btn-ghost" (click)="fetch()">Search</button>
+  </div>
+
+  <app-spinner *ngIf="loading()" label="Pulling the roster…"></app-spinner>
+
+  <div *ngIf="!loading() && doctors().length === 0" class="empty-state">
+    <div class="glyph">&mdash;</div>
+    <h3>No doctors match that filter</h3>
+    <p>Try a different specialization, or clear the search.</p>
+  </div>
+
+  <div class="roster" *ngIf="!loading() && doctors().length > 0">
+    <div class="doctor-card card" *ngFor="let d of doctors()">
+      <img class="avatar" [src]="avatarFor(d)" [alt]="d.fullName" loading="lazy">
+      <div class="info">
+        <h3>{{ d.fullName }}</h3>
+        <span class="tag tag-confirmed">{{ d.specialization }}</span>
+        <p class="meta" *ngIf="d.shiftStart && d.shiftEnd">Shift {{ d.shiftStart }}–{{ d.shiftEnd }}</p>
+        <p class="meta" *ngIf="d.email">{{ d.email }}</p>
+      </div>
+      <div class="actions" *ngIf="auth.role() === 'ADMIN'">
+        <a [routerLink]="['/doctors', d.id, 'edit']" class="btn btn-ghost btn-sm">Edit</a>
+        <button class="btn btn-danger btn-sm" (click)="pendingDelete.set(d)">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [open]="!!pendingDelete()"
+  title="Remove this doctor?"
+  [message]="pendingDelete() ? ('This removes ' + pendingDelete()!.fullName + ' from the roster.') : ''"
+  confirmLabel="Remove"
+  [danger]="true"
+  (confirmed)="confirmDelete()"
+  (cancelled)="pendingDelete.set(null)">
+</app-confirm-dialog>

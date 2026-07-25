@@ -1,0 +1,65 @@
+<div class="page-shell">
+  <header class="page-head">
+    <span class="eyebrow">{{ today | date: 'EEEE, MMMM d' }}</span>
+    <h1>{{ greeting() }}.</h1>
+  </header>
+
+  <div class="grid">
+    <ng-container *ngIf="auth.role() === 'PATIENT'">
+      <a routerLink="/book" class="action-card card featured">
+        <span class="tag-mark">01</span>
+        <h3>Book a visit</h3>
+        <p>Find a doctor, see their open slots on the day ledger, and reserve your time.</p>
+        <span class="cta">Open the ledger &rarr;</span>
+      </a>
+      <a routerLink="/appointments" class="action-card card">
+        <span class="tag-mark">02</span>
+        <h3>Your appointments</h3>
+        <p>Review upcoming and past visits, or cancel one that no longer works.</p>
+        <span class="cta">View appointments &rarr;</span>
+      </a>
+      <a routerLink="/my-profile" class="action-card card">
+        <span class="tag-mark">03</span>
+        <h3>Your profile</h3>
+        <p>Keep your contact details current so reminders reach you.</p>
+        <span class="cta">Edit profile &rarr;</span>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="auth.role() === 'DOCTOR'">
+      <a routerLink="/appointments" class="action-card card featured">
+        <span class="tag-mark">01</span>
+        <h3>Today's schedule</h3>
+        <p>See your booked appointments and confirm or complete each one.</p>
+        <span class="cta">Open schedule &rarr;</span>
+      </a>
+      <a routerLink="/doctors" class="action-card card">
+        <span class="tag-mark">02</span>
+        <h3>Your listing</h3>
+        <p>Check how patients see your specialization and working hours.</p>
+        <span class="cta">View listing &rarr;</span>
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="auth.role() === 'ADMIN'">
+      <a routerLink="/doctors/new" class="action-card card featured">
+        <span class="tag-mark">01</span>
+        <h3>Add a doctor</h3>
+        <p>Create a new doctor profile with their specialization and shift hours.</p>
+        <span class="cta">Add doctor &rarr;</span>
+      </a>
+      <a routerLink="/doctors" class="action-card card">
+        <span class="tag-mark">02</span>
+        <h3>Manage the roster</h3>
+        <p>Edit specializations and shift hours for existing doctors.</p>
+        <span class="cta">View roster &rarr;</span>
+      </a>
+      <a routerLink="/appointments" class="action-card card">
+        <span class="tag-mark">03</span>
+        <h3>All appointments</h3>
+        <p>Confirm pending bookings and keep the schedule clean.</p>
+        <span class="cta">View appointments &rarr;</span>
+      </a>
+    </ng-container>
+  </div>
+</div>

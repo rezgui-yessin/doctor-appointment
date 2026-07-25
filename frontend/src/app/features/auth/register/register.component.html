@@ -1,0 +1,51 @@
+<div class="auth-shell">
+  <section class="form-side">
+    <div class="form-card card">
+      <span class="eyebrow">New account</span>
+      <h2>Join Chartwell</h2>
+      <p class="sub">Tell us who you are, and we'll set up the right view.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="role-picker">
+          <button type="button" *ngFor="let r of roles" class="role-card"
+                  [class.selected]="form.controls.role.value === r.value"
+                  (click)="selectRole(r.value)">
+            <span class="role-label">{{ r.label }}</span>
+            <span class="role-hint">{{ r.hint }}</span>
+          </button>
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" placeholder="you@clinic.com"
+                 [class.invalid]="form.controls.email.invalid && form.controls.email.touched">
+          <span class="error" *ngIf="form.controls.email.invalid && form.controls.email.touched">Enter a valid email address.</span>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" formControlName="password" placeholder="At least 6 characters"
+                 [class.invalid]="form.controls.password.invalid && form.controls.password.touched">
+          <span class="error" *ngIf="form.controls.password.invalid && form.controls.password.touched">Password must be at least 6 characters.</span>
+        </div>
+
+        <button type="submit" class="btn btn-accent full" [disabled]="loading()">
+          <app-spinner *ngIf="loading()" [inline]="true"></app-spinner>
+          <span *ngIf="!loading()">Create account</span>
+        </button>
+      </form>
+
+      <p class="switch">Already registered? <a routerLink="/login">Sign in</a></p>
+    </div>
+  </section>
+
+  <section class="showcase">
+    <img class="showcase-photo" src="https://images.unsplash.com/photo-1758691461957-474a7686e388?w=1400&q=80&auto=format&fit=crop" alt="Doctor and patient shaking hands after a consultation">
+    <div class="showcase-scrim"></div>
+    <div class="showcase-inner">
+      <span class="eyebrow">Three roles, one ledger</span>
+      <h1>Built for how<br>a clinic actually runs.</h1>
+      <p class="lede">Patients book their own visits. Doctors see only their day. Admins keep the whole roster straight. Nobody sees more than they need.</p>
+    </div>
+  </section>
+</div>

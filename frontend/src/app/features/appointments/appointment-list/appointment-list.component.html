@@ -1,0 +1,70 @@
+<div class="page-shell">
+  <header class="page-head">
+    <span class="eyebrow">{{ isPatientView ? 'Your record' : 'Schedule' }}</span>
+    <h1>Appointments</h1>
+  </header>
+
+  <div class="doctor-picker card" *ngIf="!isPatientView">
+    <div class="field">
+      <label for="doctorPick">{{ auth.role() === 'DOCTOR' ? 'Your listing' : 'Viewing schedule for' }}</label>
+      <select id="doctorPick" [(ngModel)]="selectedDoctorId" (ngModelChange)="onDoctorPick()">
+        <option *ngFor="let d of doctors()" [ngValue]="d.id">{{ d.fullName }} — {{ d.specialization }}</option>
+      </select>
+    </div>
+  </div>
+
+  <app-spinner *ngIf="loading()" label="Reading the ledger…"></app-spinner>
+
+  <div *ngIf="!loading() && appointments().length === 0" class="empty-state">
+    <div class="glyph">&mdash;</div>
+    <h3>Nothing here yet</h3>
+    <p *ngIf="isPatientView">Once you book a visit, it will show up on this page.</p>
+    <a *ngIf="isPatientView" routerLink="/book" class="btn btn-accent btn-sm">Book a visit</a>
+  </div>
+
+  <div class="entries" *ngIf="!loading() && appointments().length > 0">
+    <div class="entry card" *ngFor="let a of appointments()">
+      <div class="when">
+        <span class="date">{{ a.date }}</span>
+        <span class="time">{{ a.startTime }}</span>
+      </div>
+      <div class="who">
+        <h3 *ngIf="isPatientView">{{ a.doctorName || ('Doctor #' + a.doctorId) }}</h3>
+        <h3 *ngIf="!isPatientView">{{ a.patientName || ('Patient #' + a.patientId) }}</h3>
+        <p class="reason" *ngIf="a.reason">{{ a.reason }}</p>
+      </div>
+      <span class="tag" [class]="'tag-' + a.status.toLowerCase()">{{ a.status }}</span>
+      <div class="actions">
+        <ng-container *ngIf="!isPatientView && a.status === 'PENDING'">
+          <button class="btn btn-ghost btn-sm" (click)="setStatus(a, 'CONFIRMED')">Confirm</button>
+        </ng-container>
+        <ng-container *ngIf="!isPatientView && a.status === 'CONFIRMED'">
+          <button class="btn btn-ghost btn-sm" (click)="setStatus(a, 'COMPLETED')">Mark complete</button>
+        </ng-container>
+        <button
+          *ngIf="a.status !== 'CANCELLED' && a.status !== 'COMPLETED'"
+          class="btn btn-danger btn-sm"
+          (click)="pendingCancel.set(a)">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pager" *ngIf="!isPatientView && totalPages() > 1">
+    <button class="btn btn-ghost btn-sm" [disabled]="page() === 0" (click)="goToPage(page() - 1)">&larr; Prev</button>
+    <span class="page-count">Page {{ page() + 1 }} of {{ totalPages() }}</span>
+    <button class="btn btn-ghost btn-sm" [disabled]="page() + 1 >= totalPages()" (click)="goToPage(page() + 1)">Next &rarr;</button>
+  </div>
+</div>
+
+<app-confirm-dialog
+  [open]="!!pendingCancel()"
+  title="Cancel this appointment?"
+  message="The patient and doctor will need to rebook if you continue."
+  confirmLabel="Cancel appointment"
+  cancelLabel="Keep it"
+  [danger]="true"
+  (confirmed)="confirmCancel()"
+  (cancelled)="pendingCancel.set(null)">
+</app-confirm-dialog>
