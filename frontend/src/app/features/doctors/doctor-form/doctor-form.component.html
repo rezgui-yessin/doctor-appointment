@@ -1,55 +1,83 @@
 <div class="page-shell narrow">
   <header class="page-head">
-    <span class="eyebrow">Roster</span>
-    <h1>{{ isEdit ? 'Edit doctor' : 'Add a doctor' }}</h1>
-    <p class="sub">Set the specialization and shift hours patients will see when booking.</p>
+    <span class="eyebrow">Clinical Roster Profile</span>
+    <h1>{{ isEdit ? 'Edit Doctor Profile' : 'Register Doctor Profile' }}</h1>
+    <p class="sub">Set your specialization, working days, shift hours, and profile photo for patient bookings.</p>
   </header>
 
   <app-spinner *ngIf="loading()" label="Loading profile…"></app-spinner>
 
   <form class="card form-card" *ngIf="!loading()" [formGroup]="form" (ngSubmit)="submit()">
+    
+    <!-- Photo Upload Section -->
+    <div class="profile-photo-uploader margin-bottom-md">
+      <div class="avatar-large">
+        <img *ngIf="photoPreview()" [src]="photoPreview()" alt="Doctor Avatar" class="avatar-img" />
+        <span *ngIf="!photoPreview()" class="avatar-fallback">{{ initials || 'DR' }}</span>
+        <div class="avatar-overlay" *ngIf="uploading()">
+          <app-spinner></app-spinner>
+        </div>
+      </div>
+      <div class="upload-controls">
+        <label class="btn btn-primary btn-sm btn-upload">
+          <span>{{ photoPreview() ? 'Change Photo' : 'Upload Photo' }}</span>
+          <input type="file" (change)="onFileSelected($event)" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+        </label>
+        <button type="button" class="btn btn-ghost btn-sm text-danger" *ngIf="photoPreview()" (click)="removePhoto()">
+          Remove
+        </button>
+        <p class="hint">Cloudinary storage (JPEG, PNG, WebP up to 5 MB)</p>
+      </div>
+    </div>
+
     <div class="field">
-      <label for="fullName">Full name</label>
+      <label for="fullName">Full Name *</label>
       <input id="fullName" formControlName="fullName" placeholder="Dr. Maria Alvarez"
              [class.invalid]="form.controls.fullName.invalid && form.controls.fullName.touched">
       <span class="error" *ngIf="form.controls.fullName.invalid && form.controls.fullName.touched">Enter the doctor's full name.</span>
     </div>
 
     <div class="field">
-      <label for="specialization">Specialization</label>
-      <input id="specialization" formControlName="specialization" placeholder="Cardiology"
+      <label for="specialization">Specialization *</label>
+      <input id="specialization" formControlName="specialization" placeholder="Cardiology, General Practice, Neurology..."
              [class.invalid]="form.controls.specialization.invalid && form.controls.specialization.touched">
       <span class="error" *ngIf="form.controls.specialization.invalid && form.controls.specialization.touched">Specialization is required.</span>
     </div>
 
     <div class="two-col">
       <div class="field">
-        <label for="email">Email</label>
+        <label for="email">Email Address *</label>
         <input id="email" formControlName="email" placeholder="doctor@clinic.com"
                [class.invalid]="form.controls.email.invalid && form.controls.email.touched">
         <span class="error" *ngIf="form.controls.email.invalid && form.controls.email.touched">Valid email is required.</span>
       </div>
       <div class="field">
-        <label for="phone">Phone</label>
+        <label for="phone">Phone Number</label>
         <input id="phone" formControlName="phone" placeholder="+1 555 0100">
       </div>
     </div>
 
+    <div class="field">
+      <label for="workingDays">Working Days</label>
+      <input id="workingDays" formControlName="workingDays" placeholder="MON,TUE,WED,THU,FRI">
+      <p class="hint">Comma-separated days (e.g. MON,TUE,WED,THU,FRI)</p>
+    </div>
+
     <div class="two-col">
       <div class="field">
-        <label for="shiftStart">Shift start</label>
+        <label for="shiftStart">Shift Start *</label>
         <input id="shiftStart" type="time" formControlName="startTime">
       </div>
       <div class="field">
-        <label for="shiftEnd">Shift end</label>
+        <label for="shiftEnd">Shift End *</label>
         <input id="shiftEnd" type="time" formControlName="endTime">
       </div>
     </div>
 
     <div class="form-actions">
-      <a routerLink="/doctors" class="btn btn-ghost">Cancel</a>
-      <button type="submit" class="btn btn-accent" [disabled]="saving()">
-        {{ saving() ? 'Saving…' : (isEdit ? 'Save changes' : 'Add doctor') }}
+      <a routerLink="/dashboard" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-accent" [disabled]="saving() || uploading()">
+        {{ saving() ? 'Saving Profile…' : (isEdit ? 'Save Changes' : 'Register Doctor Profile') }}
       </button>
     </div>
   </form>

@@ -15,6 +15,8 @@ export interface AuthResponse {
   token: string;
   email?: string;
   role?: Role;
+  patientId?: number;
+  doctorId?: number;
 }
 
 export interface DecodedToken {

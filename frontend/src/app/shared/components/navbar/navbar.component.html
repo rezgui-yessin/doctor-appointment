@@ -8,8 +8,8 @@
     <a routerLink="/dashboard" routerLinkActive="active" class="tab">Dashboard</a>
     <a routerLink="/doctors" routerLinkActive="active" class="tab">Doctors</a>
     <a *ngIf="auth.role() === 'PATIENT'" routerLink="/book" routerLinkActive="active" class="tab">Book visit</a>
-    <a routerLink="/appointments" routerLinkActive="active" class="tab">Appointments</a>
-    <a *ngIf="auth.role() === 'PATIENT'" routerLink="/my-profile" routerLinkActive="active" class="tab">My profile</a>
+    <a *ngIf="auth.role() !== 'PATIENT'" routerLink="/appointments" routerLinkActive="active" class="tab">Appointments</a>
+    <a *ngIf="auth.role() === 'PATIENT' || auth.role() === 'DOCTOR'" routerLink="/my-profile" routerLinkActive="active" class="tab">My profile</a>
   </div>
 
   <div class="account">

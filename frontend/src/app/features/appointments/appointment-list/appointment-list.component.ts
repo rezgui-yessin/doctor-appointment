@@ -52,15 +52,17 @@ export class AppointmentListComponent implements OnInit {
   }
 
   private loadPatientAppointments(): void {
-    const patientId = this.patientService.getMyPatientId();
-    if (!patientId) return;
     this.loading.set(true);
-    this.appointmentService.forPatient(patientId).subscribe({
+    // Use /api/appointments/mine — backend resolves the patient from the JWT token
+    this.appointmentService.forMe().subscribe({
       next: (list) => {
         this.appointments.set(this.sortByDateDesc(list));
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.toast.show('Could not load your appointments.', 'error');
+      },
     });
   }
 

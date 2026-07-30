@@ -4,10 +4,11 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Appointment, AppointmentRequest, AppointmentStatus, AvailableSlot, Page, TimeSlot } from '../models/appointment.model';
 import { PatientFolder } from '../models/patient-folder.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
-  private readonly base = '/api/appointments';
+  private readonly base = `${environment.apiUrl}/appointments`;
 
   constructor(private http: HttpClient) {}
 
@@ -32,8 +33,19 @@ export class AppointmentService {
     );
   }
 
-  forPatient(patientId: number): Observable<Appointment[]> {
-    return this.http.get<Appointment[]>(`${this.base}/patient/${patientId}`);
+  /** Get all appointments for the currently logged-in patient (no ID needed) */
+  forMe(page = 0, size = 100): Observable<Appointment[]> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<Page<Appointment>>(`${this.base}/mine`, { params }).pipe(
+      map(p => p.content)
+    );
+  }
+
+  forPatient(patientId: number, page = 0, size = 100): Observable<Appointment[]> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<Page<Appointment>>(`${this.base}/patient/${patientId}`, { params }).pipe(
+      map(p => p.content)
+    );
   }
 
   forDoctor(doctorId: number, page = 0, size = 10): Observable<Page<Appointment>> {

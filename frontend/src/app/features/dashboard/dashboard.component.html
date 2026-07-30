@@ -264,59 +264,13 @@
           </div>
         </div>
 
-        <!-- Upcoming Visits Card -->
-        <div class="card ledger-card">
+        <!-- Appointment Calendar -->
+        <div class="card cal-card">
           <div class="card-header border-ruled">
-            <h3 class="card-title font-serif">Upcoming Scheduled Visits</h3>
-            <span class="badge-tag counter-badge">{{ upcomingPatientAppointments.length }}</span>
+            <h3 class="card-title font-serif">My Visit Calendar</h3>
+            <span class="badge-tag highlight-green">SCHEDULE</span>
           </div>
-          <div class="ledger-body">
-            <div class="empty-state" *ngIf="upcomingPatientAppointments.length === 0">
-              <span class="glyph">📅</span>
-              <p>No upcoming visits scheduled.</p>
-            </div>
-            
-            <div class="ledger-item" *ngFor="let appt of upcomingPatientAppointments">
-              <div class="ledger-meta">
-                <span class="ledger-date">{{ appointmentDate(appt) | date: 'EEEE, MMM d' }}</span>
-                <span class="ledger-time">{{ appointmentTime(appt) }}</span>
-              </div>
-              <div class="ledger-details">
-                <h4>Dr. {{ appt.doctorName }}</h4>
-                <p class="ledger-reason" *ngIf="appt.reason">"{{ appt.reason }}"</p>
-                <div class="ledger-controls">
-                  <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
-                  <button class="btn btn-danger btn-sm" (click)="cancelAppointment(appt.id)">Cancel</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Appointment History Card -->
-        <div class="card ledger-card soft-card">
-          <div class="card-header border-ruled">
-            <h3 class="card-title font-serif">Archived Visit Ledgers</h3>
-          </div>
-          <div class="ledger-body">
-            <div class="empty-state" *ngIf="pastPatientAppointments.length === 0">
-              <span class="glyph">📚</span>
-              <p>No past appointments recorded.</p>
-            </div>
-
-            <div class="ledger-item disabled-item" *ngFor="let appt of pastPatientAppointments">
-              <div class="ledger-meta">
-                <span class="ledger-date">{{ appointmentDate(appt) | date: 'MMM d, y' }}</span>
-                <span class="ledger-time">{{ appointmentTime(appt) }}</span>
-              </div>
-              <div class="ledger-details">
-                <h4>Dr. {{ appt.doctorName }}</h4>
-                <div class="ledger-controls">
-                  <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <app-appointment-calendar></app-appointment-calendar>
         </div>
       </div>
     </div>

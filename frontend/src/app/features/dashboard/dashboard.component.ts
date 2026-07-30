@@ -13,14 +13,16 @@ import { Doctor } from '../../core/models/doctor.model';
 import { Patient } from '../../core/models/patient.model';
 import { PatientFolder } from '../../core/models/patient-folder.model';
 import { SpinnerComponent } from '../../shared/components/spinner/spinner.component';
+import { AppointmentCalendarComponent } from '../../shared/components/appointment-calendar/appointment-calendar.component';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { UploadService } from '../../core/services/upload.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, SpinnerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, SpinnerComponent, AppointmentCalendarComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -100,7 +102,8 @@ export class DashboardComponent implements OnInit {
     private patientService: PatientService,
     private aiTriageService: AiTriageService,
     private toast: ToastService,
-    private wsService: WebSocketService
+    private wsService: WebSocketService,
+    private uploadService: UploadService
   ) {
     this.formattedToday = this.formatDate(this.today);
     this.bookingDate.set(this.formattedToday);
@@ -152,12 +155,22 @@ export class DashboardComponent implements OnInit {
   // ==========================================
   initPatientDashboard(): void {
     const patientId = this.patientService.getMyPatientId();
-    if (!patientId) {
-      this.noProfileAlert.set(true);
-      this.loadDoctorsList();
-      return;
+    if (patientId) {
+      this.loadPatientDashboardData(patientId);
+    } else {
+      this.patientService.getMyProfile().subscribe({
+        next: (profile) => {
+          this.loadPatientDashboardData(profile.id);
+        },
+        error: () => {
+          this.noProfileAlert.set(true);
+          this.loadDoctorsList();
+        }
+      });
     }
+  }
 
+  private loadPatientDashboardData(patientId: number): void {
     this.noProfileAlert.set(false);
     this.loading.set(true);
 
@@ -365,7 +378,6 @@ export class DashboardComponent implements OnInit {
   // ==========================================
   initDoctorDashboard(): void {
     const id = this.doctorService.getMyDoctorId();
-    this.claimedDoctorId.set(id);
 
     this.doctorService.list().subscribe({
       next: (docs) => {
@@ -374,15 +386,32 @@ export class DashboardComponent implements OnInit {
     });
 
     if (id) {
+      this.loadDoctorDashboardData(id);
+    } else {
       this.loading.set(true);
-      this.doctorService.get(id).subscribe({
-        next: (details) => {
-          this.claimedDoctorDetails.set(details);
-        }
+      this.doctorService.getMyProfile().subscribe({
+        next: (doc) => {
+          if (doc?.id) {
+            this.loadDoctorDashboardData(doc.id);
+          } else {
+            this.loading.set(false);
+          }
+        },
+        error: () => this.loading.set(false)
       });
-      this.loadDoctorAppointments(id);
-      this.loadPatientFolders(id);
     }
+  }
+
+  private loadDoctorDashboardData(id: number): void {
+    this.claimedDoctorId.set(id);
+    this.loading.set(true);
+    this.doctorService.get(id).subscribe({
+      next: (details) => {
+        this.claimedDoctorDetails.set(details);
+      }
+    });
+    this.loadDoctorAppointments(id);
+    this.loadPatientFolders(id);
   }
 
   loadPatientFolders(doctorId: number): void {
@@ -473,6 +502,42 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.toast.show('Failed to update status.', 'error');
+      }
+    });
+  }
+
+  uploadingDoc = signal(false);
+
+  uploadConsultationPdf(appointmentId: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.uploadingDoc.set(true);
+    this.uploadService.uploadConsultationPdf(file, appointmentId).subscribe({
+      next: () => {
+        this.uploadingDoc.set(false);
+        this.toast.show('Consultation PDF uploaded to Cloudinary!', 'success');
+      },
+      error: (err) => {
+        this.uploadingDoc.set(false);
+        this.toast.show(err.error?.error ?? 'Upload failed.', 'error');
+      }
+    });
+  }
+
+  uploadPatientDoc(patientId: number, docType: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    this.uploadingDoc.set(true);
+    this.uploadService.uploadPatientDocument(file, patientId, docType).subscribe({
+      next: () => {
+        this.uploadingDoc.set(false);
+        this.toast.show('Patient document saved to Cloudinary!', 'success');
+      },
+      error: (err) => {
+        this.uploadingDoc.set(false);
+        this.toast.show(err.error?.error ?? 'Upload failed.', 'error');
       }
     });
   }

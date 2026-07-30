@@ -1,13 +1,14 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { AuthResponse, DecodedToken, LoginRequest, RegisterRequest, Role } from '../models/auth.model';
 
 const TOKEN_KEY = 'chartwell_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly base = '/api/auth';
+  private readonly base = `${environment.apiUrl}/auth`;
 
   /** Reactive signal of the decoded token, or null when logged out */
   readonly session = signal<DecodedToken | null>(this.decode(this.readToken()));
@@ -18,13 +19,27 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   register(payload: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.base}/register`, payload);
+    return this.http.post<AuthResponse>(`${this.base}/register`, payload).pipe(
+      tap((res) => this.handleAuthSuccess(res))
+    );
   }
 
   login(payload: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.base}/login`, payload).pipe(
-      tap((res) => this.setToken(res.token))
+      tap((res) => this.handleAuthSuccess(res))
     );
+  }
+
+  private handleAuthSuccess(res: AuthResponse): void {
+    if (res.token) {
+      this.setToken(res.token);
+    }
+    if (res.patientId) {
+      localStorage.setItem('chartwell_patient_id', String(res.patientId));
+    }
+    if (res.doctorId) {
+      localStorage.setItem('chartwell_doctor_id', String(res.doctorId));
+    }
   }
 
   logout(): void {

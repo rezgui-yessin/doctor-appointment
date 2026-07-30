@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { Doctor, DoctorRequest } from '../models/doctor.model';
+import { environment } from '../../../environments/environment';
 
 const DOCTOR_ID_KEY = 'chartwell_doctor_id';
 
 @Injectable({ providedIn: 'root' })
 export class DoctorService {
-  private readonly base = '/api/doctors';
+  private readonly base = `${environment.apiUrl}/doctors`;
 
   constructor(private http: HttpClient) {}
 
@@ -33,6 +34,14 @@ export class DoctorService {
 
   get(id: number): Observable<Doctor> {
     return this.http.get<Doctor>(`${this.base}/${id}`);
+  }
+
+  getMyProfile(): Observable<Doctor> {
+    return this.http.get<Doctor>(`${this.base}/me`).pipe(
+      tap((d) => {
+        if (d?.id) this.setMyDoctorId(d.id);
+      })
+    );
   }
 
   create(payload: DoctorRequest): Observable<Doctor> {

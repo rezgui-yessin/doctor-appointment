@@ -37,8 +37,8 @@ export const routes: Routes = [
   {
     path: 'my-profile',
     canActivate: [roleGuard],
-    data: { roles: ['PATIENT'] },
-    loadComponent: () => import('./features/patients/patient-form/patient-form.component').then((m) => m.PatientFormComponent),
+    data: { roles: ['PATIENT', 'DOCTOR'] },
+    loadComponent: () => import('./features/profile/profile-container.component').then((m) => m.ProfileContainerComponent),
   },
   {
     path: 'book',

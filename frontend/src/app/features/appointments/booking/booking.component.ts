@@ -48,10 +48,22 @@ export class BookingComponent implements OnInit {
     private toast: ToastService,
     private router: Router
   ) {
+    // Try local cache first
     this.patientId = this.patientService.getMyPatientId();
   }
 
   ngOnInit(): void {
+    // Always resolve patient from backend on init (handles users with null patientId in JWT)
+    this.patientService.getMyProfile().subscribe({
+      next: (p) => {
+        this.patientId = p.id;
+        this.patientService.setMyPatientId(p.id);
+      },
+      error: () => {
+        // Will retry on confirmBooking
+      }
+    });
+
     this.loadingDoctors.set(true);
     this.doctorService.list().subscribe({
       next: (docs) => {
@@ -104,17 +116,34 @@ export class BookingComponent implements OnInit {
   confirmBooking(): void {
     const slot = this.selectedSlot();
     if (!slot || !this.selectedDoctorId) return;
+
     if (!this.patientId) {
-      this.toast.show('Finish your profile first so we know who to book for.', 'info');
-      this.router.navigate(['/my-profile']);
+      // Auto-resolve patient then book
+      this.booking.set(true);
+      this.patientService.getMyProfile().subscribe({
+        next: (p) => {
+          this.patientId = p.id;
+          this.patientService.setMyPatientId(p.id);
+          this.doBook(slot);
+        },
+        error: () => {
+          this.booking.set(false);
+          this.toast.show('Could not resolve your patient profile. Please try again.', 'error');
+        }
+      });
       return;
     }
+
+    this.doBook(slot);
+  }
+
+  private doBook(slot: AvailableSlot): void {
     this.booking.set(true);
     const appointmentTime = AppointmentService.toLocalDateTime(this.selectedDate, slot.time);
     this.appointmentService
       .book({
-        doctorId: this.selectedDoctorId,
-        patientId: this.patientId,
+        doctorId: this.selectedDoctorId!,
+        patientId: this.patientId!,
         appointmentTime,
         reason: this.reason || undefined,
       })
@@ -122,7 +151,7 @@ export class BookingComponent implements OnInit {
         next: () => {
           this.booking.set(false);
           this.toast.show(`Booked for ${slot.time} on ${this.selectedDate}.`, 'success');
-          this.router.navigate(['/appointments']);
+          this.router.navigate(['/dashboard']);
         },
         error: () => {
           this.booking.set(false);
