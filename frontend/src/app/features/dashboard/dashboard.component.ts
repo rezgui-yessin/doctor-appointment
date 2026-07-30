@@ -57,14 +57,20 @@ export class DashboardComponent implements OnInit {
   bookingReason = signal('');
 
   // --- DOCTOR STATE ---
+  claimedDoctorId = signal<number | null>(null);
+  claimedDoctorDetails = signal<Doctor | null>(null);
   doctorAppointments = signal<Appointment[]>([]);
-  doctorProfile = signal<Doctor | null>(null);
+  todayBookingsCount = signal(0);
+  pendingConfirmationsCount = signal(0);
+  completedVisitsCount = signal(0);
   doctorFilter = signal<'TODAY' | 'ALL' | 'PENDING'>('TODAY');
   unclaimedDoctorId = signal<number | null>(null);
   
   // Patient Folders side-panel state
   patientFolders = signal<PatientFolder[]>([]);
   selectedFolder = signal<PatientFolder | null>(null);
+  folderPatientAppointments = signal<Appointment[]>([]);
+  folderLoading = signal(false);
   patientSearchQuery = signal<string>('');
 
   // --- ADMIN STATE ---
@@ -309,7 +315,7 @@ export class DashboardComponent implements OnInit {
     const payload = {
       doctorId: this.bookingDoctorId()!,
       patientId,
-      appointmentTime: AppointmentService.toLocalDateTime(this.bookingDate(), this.bookingSlotTime()),
+      appointmentTime: AppointmentService.toLocalDateTime(this.bookingDate(), this.bookingSlotTime()!),
       reason: this.bookingReason().trim() || undefined
     };
 
