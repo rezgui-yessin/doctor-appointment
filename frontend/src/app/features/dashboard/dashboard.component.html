@@ -1,65 +1,769 @@
 <div class="page-shell">
-  <header class="page-head">
-    <span class="eyebrow">{{ today | date: 'EEEE, MMMM d' }}</span>
-    <h1>{{ greeting() }}.</h1>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="loading()">
+    <app-spinner></app-spinner>
+    <p>Synchronizing Ledger...</p>
+  </div>
+
+  <!-- Header -->
+  <header class="dashboard-head">
+    <div class="head-info">
+      <span class="eyebrow">{{ today | date: 'EEEE, MMMM d, y' }}</span>
+      <h1 class="welcome-title">{{ greeting() }}<span *ngIf="auth.email() as email">, {{ email.split('@')[0] }}</span>.</h1>
+      <p class="sub-welcome">Clinic Operations Control Dashboard &bull; Clinical Scheduler</p>
+    </div>
+    <div class="status-pill" *ngIf="role()">
+      <span class="role-dot" [ngClass]="role()?.toLowerCase() || ''"></span>
+      <span class="role-text">{{ role() }} MODULE</span>
+    </div>
   </header>
 
-  <div class="grid">
-    <ng-container *ngIf="auth.role() === 'PATIENT'">
-      <a routerLink="/book" class="action-card card featured">
-        <span class="tag-mark">01</span>
-        <h3>Book a visit</h3>
-        <p>Find a doctor, see their open slots on the day ledger, and reserve your time.</p>
-        <span class="cta">Open the ledger &rarr;</span>
-      </a>
-      <a routerLink="/appointments" class="action-card card">
-        <span class="tag-mark">02</span>
-        <h3>Your appointments</h3>
-        <p>Review upcoming and past visits, or cancel one that no longer works.</p>
-        <span class="cta">View appointments &rarr;</span>
-      </a>
-      <a routerLink="/my-profile" class="action-card card">
-        <span class="tag-mark">03</span>
-        <h3>Your profile</h3>
-        <p>Keep your contact details current so reminders reach you.</p>
-        <span class="cta">Edit profile &rarr;</span>
-      </a>
-    </ng-container>
+  <!-- ========================================== -->
+  <!-- PATIENT DASHBOARD SECTION                  -->
+  <!-- ========================================== -->
+  <div class="dashboard-content patient-module" *ngIf="role() === 'PATIENT'">
+    
+    <!-- Profile Warning Alert -->
+    <div class="card alert-card warning-alert margin-bottom-lg" *ngIf="noProfileAlert()">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-body">
+        <h4>Patient Profile Setup Required</h4>
+        <p>You must complete your patient profile details before booking appointments or receiving reminders.</p>
+        <a routerLink="/my-profile" class="btn btn-primary btn-sm">Complete Profile Now</a>
+      </div>
+    </div>
 
-    <ng-container *ngIf="auth.role() === 'DOCTOR'">
-      <a routerLink="/appointments" class="action-card card featured">
-        <span class="tag-mark">01</span>
-        <h3>Today's schedule</h3>
-        <p>See your booked appointments and confirm or complete each one.</p>
-        <span class="cta">Open schedule &rarr;</span>
-      </a>
-      <a routerLink="/doctors" class="action-card card">
-        <span class="tag-mark">02</span>
-        <h3>Your listing</h3>
-        <p>Check how patients see your specialization and working hours.</p>
-        <span class="cta">View listing &rarr;</span>
-      </a>
-    </ng-container>
+    <!-- Doctor Directory / Our Specialists -->
+    <div class="directory-section margin-bottom-xl">
+      <div class="directory-header">
+        <div>
+          <h2 class="section-title">Our Specialists</h2>
+          <p class="section-desc">Browse our directory of world-class healthcare professionals and book your visit.</p>
+        </div>
+        <div class="directory-search">
+          <input type="text" placeholder="Search by name or specialty..." [ngModel]="doctorSearchQuery()" (ngModelChange)="doctorSearchQuery.set($event)" class="search-input" />
+        </div>
+      </div>
+      
+      <div class="specialty-filters">
+        <button class="filter-chip" [class.active]="doctorFilterSpecialty() === ''" (click)="selectSpecialty('')">
+          All Specialties
+        </button>
+        <button *ngFor="let spec of specialties" class="filter-chip" 
+                [class.active]="doctorFilterSpecialty() === spec" 
+                (click)="selectSpecialty(spec)">
+          {{ spec }}
+        </button>
+      </div>
 
-    <ng-container *ngIf="auth.role() === 'ADMIN'">
-      <a routerLink="/doctors/new" class="action-card card featured">
-        <span class="tag-mark">01</span>
-        <h3>Add a doctor</h3>
-        <p>Create a new doctor profile with their specialization and shift hours.</p>
-        <span class="cta">Add doctor &rarr;</span>
-      </a>
-      <a routerLink="/doctors" class="action-card card">
-        <span class="tag-mark">02</span>
-        <h3>Manage the roster</h3>
-        <p>Edit specializations and shift hours for existing doctors.</p>
-        <span class="cta">View roster &rarr;</span>
-      </a>
-      <a routerLink="/appointments" class="action-card card">
-        <span class="tag-mark">03</span>
-        <h3>All appointments</h3>
-        <p>Confirm pending bookings and keep the schedule clean.</p>
-        <span class="cta">View appointments &rarr;</span>
-      </a>
-    </ng-container>
+      <div class="doctors-grid">
+        <div class="empty-state inline-empty" *ngIf="filteredDoctors.length === 0">
+          <span class="glyph">🔍</span>
+          <p>No specialists found matching your criteria.</p>
+        </div>
+        
+        <div class="doctor-card" *ngFor="let doc of filteredDoctors">
+          <div class="doc-card-header">
+            <div class="doc-avatar">
+              <img [src]="doctorAvatar(doc)" alt="Dr. {{ doc.fullName }}" />
+            </div>
+            <div class="doc-primary-info">
+              <h3>Dr. {{ doc.fullName }}</h3>
+              <span class="tag tag-confirmed">{{ doc.specialization }}</span>
+            </div>
+          </div>
+          <div class="doc-card-body">
+            <div class="doc-meta-item">
+              <span class="meta-icon">🕒</span>
+              <span>{{ doc.startTime || '09:00' }} - {{ doc.endTime || '17:00' }}</span>
+            </div>
+            <div class="doc-meta-item">
+              <span class="meta-icon">📅</span>
+              <span>{{ doc.workingDays || 'Mon-Fri' }}</span>
+            </div>
+          </div>
+          <div class="doc-card-footer">
+            <button class="btn btn-accent w-100" (click)="quickBookDoctor(doc.id)">
+              Book Appointment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- Left Column: Actions & Symptom Triage -->
+      <div class="main-column flex-column">
+        
+        <!-- AI Symptom Triage terminal -->
+        <div class="card triage-card gradient-border">
+          <div class="card-header">
+            <div>
+              <span class="eyebrow highlight-magenta">AI HEALTH ASSISTANT</span>
+              <h3 class="card-title">Intelligent Symptom Checker</h3>
+            </div>
+            <span class="triage-status">Active</span>
+          </div>
+          <div class="triage-body">
+            <p class="triage-prompt">Describe your symptoms in detail. Our medical AI will triage the symptoms, recommend a specialization, and match you with open appointment slots.</p>
+            <div class="field">
+              <textarea 
+                [ngModel]="symptomsText()" (ngModelChange)="symptomsText.set($event)" 
+                placeholder="e.g. I have a dry cough, mild fever, and a sore throat starting yesterday..." 
+                rows="4"
+                [disabled]="triageLoading()">
+              </textarea>
+            </div>
+            <div class="triage-footer">
+              <button 
+                class="btn btn-accent" 
+                (click)="analyzeSymptoms()" 
+                [disabled]="triageLoading() || !symptomsText().trim()">
+                <app-spinner *ngIf="triageLoading()"></app-spinner>
+                <span>{{ triageLoading() ? 'Analyzing Symptoms...' : 'Analyze Symptoms with AI' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Triage results panel -->
+          <div class="triage-results" *ngIf="triageResult() as triage" [ngClass]="{'fade-in': triage}">
+            <div class="result-summary warning-box">
+              <h4>Clinical Recommendation</h4>
+              <p>{{ triage.recommendation }}</p>
+            </div>
+            <div class="result-details">
+              <div class="detail-badge">
+                <span class="label">Suggested Specialization:</span>
+                <span class="value">{{ triage.suggestedSpecialization }}</span>
+              </div>
+            </div>
+
+            <div class="suggested-doctors-section">
+              <h4>Suggested Specialists & Open Slots</h4>
+              <div class="empty-state" *ngIf="!triage.doctors || triage.doctors.length === 0">
+                <p>No specialists found with open slots in the next 3 days.</p>
+              </div>
+
+              <div class="suggested-doctor-card card" *ngFor="let doc of triage.doctors">
+                <div class="doctor-brief">
+                  <div class="doc-icon">🩺</div>
+                  <div class="doc-info">
+                    <h5>Dr. {{ doc.doctorName }}</h5>
+                    <span class="tag tag-confirmed">{{ doc.specialization }}</span>
+                  </div>
+                </div>
+
+                <div class="slots-ledger">
+                  <h6>Next Available Ledger Sheets:</h6>
+                  <div class="slot-days-grid">
+                    <div class="slot-day" *ngFor="let dayObj of getSlotsArray(doc.availableSlots)">
+                      <div class="day-label">{{ dayObj.date | date: 'EEE, MMM d' }}</div>
+                      <div class="slots-container">
+                        <button 
+                          class="btn btn-ghost btn-sm slot-btn" 
+                          *ngFor="let slot of dayObj.slots"
+                          (click)="bookTriageSlot(doc.doctorId, dayObj.date, slot.time)">
+                          {{ slot.time }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="no-slots-alert" *ngIf="getSlotsArray(doc.availableSlots).length === 0">
+                    No open slots found for this physician in the upcoming 3 days.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Quick Booking Widget -->
+        <div id="quick-booking-section" class="card booking-card">
+          <div class="card-header border-ruled">
+            <h3 class="card-title">Manual Slot reservation</h3>
+          </div>
+          <div class="booking-body">
+            <div class="booking-grid">
+              <div class="field">
+                <label>Select Healthcare Provider</label>
+                <select [ngModel]="bookingDoctorId()" (ngModelChange)="bookingDoctorId.set($event); onBookingDoctorOrDateChange()">
+                  <option [ngValue]="null">-- Choose a Doctor --</option>
+                  <option *ngFor="let doc of doctorsList()" [ngValue]="doc.id">
+                    Dr. {{ doc.fullName }} ({{ doc.specialization }})
+                  </option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Select Date</label>
+                <input type="date" [ngModel]="bookingDate()" (ngModelChange)="bookingDate.set($event); onBookingDoctorOrDateChange()" />
+              </div>
+            </div>
+
+            <!-- Slots container -->
+            <div class="field" *ngIf="bookingDoctorId() && bookingDate()">
+              <label>Select Available Time Sheet Slot</label>
+              <div class="booking-slots-info" *ngIf="bookingSlotsLoading()">
+                <app-spinner></app-spinner> Retrieving clinic ledger...
+              </div>
+              <div class="slots-wrapper" *ngIf="!bookingSlotsLoading()">
+                <div class="empty-state inline-empty" *ngIf="bookingSlots().length === 0">
+                  <span class="glyph">📖</span>
+                  <p>No available slots found on this day.</p>
+                </div>
+                <div class="slots-grid" *ngIf="bookingSlots().length > 0">
+                  <button 
+                    type="button"
+                    class="btn btn-ghost slot-choice" 
+                    *ngFor="let slot of bookingSlots()"
+                    [ngClass]="{'btn-primary': bookingSlotTime() === slot.time}"
+                    (click)="bookingSlotTime.set(slot.time)">
+                    {{ slot.time }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Reason for Visit</label>
+              <textarea [ngModel]="bookingReason()" (ngModelChange)="bookingReason.set($event)" placeholder="Enter the purpose of your visit..." rows="2"></textarea>
+            </div>
+
+            <div class="booking-footer">
+              <button 
+                class="btn btn-primary w-100" 
+                (click)="bookAppointment()" 
+                [disabled]="bookingSaving() || !bookingDoctorId() || !bookingDate() || !bookingSlotTime()">
+                <app-spinner *ngIf="bookingSaving()"></app-spinner>
+                <span>Reserve Appointment Slot</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Ledger Lists & Profile -->
+      <div class="sidebar-column flex-column">
+        
+        <!-- Patient Profile Card -->
+        <div class="card info-card" *ngIf="patientProfile() as profile">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Patient Registry File</h3>
+            <span class="badge-tag">RECORDED</span>
+          </div>
+          <div class="patient-profile-details">
+            <div class="profile-avatar">
+              <img *ngIf="profile.photoUrl" [src]="profile.photoUrl" class="avatar-img" />
+              <span *ngIf="!profile.photoUrl" class="avatar-fallback">{{ patientInitials(profile.fullName) }}</span>
+            </div>
+            <div class="profile-meta">
+              <h4>{{ profile.fullName }}</h4>
+              <p class="mono-text">ID: PT-{{ profile.id.toString().padStart(4, '0') }}</p>
+              <a routerLink="/my-profile" class="edit-profile-link">Edit Profile</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Visits Card -->
+        <div class="card ledger-card">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Upcoming Scheduled Visits</h3>
+            <span class="badge-tag counter-badge">{{ upcomingPatientAppointments.length }}</span>
+          </div>
+          <div class="ledger-body">
+            <div class="empty-state" *ngIf="upcomingPatientAppointments.length === 0">
+              <span class="glyph">📅</span>
+              <p>No upcoming visits scheduled.</p>
+            </div>
+            
+            <div class="ledger-item" *ngFor="let appt of upcomingPatientAppointments">
+              <div class="ledger-meta">
+                <span class="ledger-date">{{ appointmentDate(appt) | date: 'EEEE, MMM d' }}</span>
+                <span class="ledger-time">{{ appointmentTime(appt) }}</span>
+              </div>
+              <div class="ledger-details">
+                <h4>Dr. {{ appt.doctorName }}</h4>
+                <p class="ledger-reason" *ngIf="appt.reason">"{{ appt.reason }}"</p>
+                <div class="ledger-controls">
+                  <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
+                  <button class="btn btn-danger btn-sm" (click)="cancelAppointment(appt.id)">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appointment History Card -->
+        <div class="card ledger-card soft-card">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Archived Visit Ledgers</h3>
+          </div>
+          <div class="ledger-body">
+            <div class="empty-state" *ngIf="pastPatientAppointments.length === 0">
+              <span class="glyph">📚</span>
+              <p>No past appointments recorded.</p>
+            </div>
+
+            <div class="ledger-item disabled-item" *ngFor="let appt of pastPatientAppointments">
+              <div class="ledger-meta">
+                <span class="ledger-date">{{ appointmentDate(appt) | date: 'MMM d, y' }}</span>
+                <span class="ledger-time">{{ appointmentTime(appt) }}</span>
+              </div>
+              <div class="ledger-details">
+                <h4>Dr. {{ appt.doctorName }}</h4>
+                <div class="ledger-controls">
+                  <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- DOCTOR DASHBOARD SECTION                   -->
+  <!-- ========================================== -->
+  <div class="dashboard-content doctor-module" *ngIf="role() === 'DOCTOR'">
+    <!-- Claiming Ledger Widget -->
+    <div class="card warning-alert alert-card margin-bottom-lg" *ngIf="!claimedDoctorId()">
+      <div class="alert-icon">🩺</div>
+      <div class="alert-body">
+        <h4>Physician Identity Unclaimed</h4>
+        <p>Your browser is not associated with any doctor profile yet. Please select your clinical profile to view your schedules.</p>
+        <div class="inline-select-action">
+          <select #claimSelect>
+            <option value="">-- Choose Profile --</option>
+            <option *ngFor="let doc of doctorsList()" [value]="doc.id">Dr. {{ doc.fullName }} ({{ doc.specialization }})</option>
+          </select>
+          <button class="btn btn-accent btn-sm" (click)="claimDoctorIdentity(+claimSelect.value)">Claim My Ledger</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doctor Dashboard Grid -->
+    <div class="dashboard-grid" *ngIf="claimedDoctorId()">
+      <!-- Main view: Schedules & Stats -->
+      <div class="main-column flex-column">
+        <!-- Stats overview -->
+        <div class="stats-row">
+          <div class="card stat-box bg-sage">
+            <span class="stat-lbl">TODAY'S BOOKINGS</span>
+            <h2 class="stat-val">{{ todayBookingsCount() }}</h2>
+          </div>
+          <div class="card stat-box bg-amber">
+            <span class="stat-lbl">PENDING CONFIRMATIONS</span>
+            <h2 class="stat-val">{{ pendingConfirmationsCount() }}</h2>
+          </div>
+          <div class="card stat-box bg-ink">
+            <span class="stat-lbl">COMPLETED VISITS</span>
+            <h2 class="stat-val">{{ completedVisitsCount() }}</h2>
+          </div>
+        </div>
+
+        <!-- Today's Schedule Ledger -->
+        <div class="card ledger-card grid-header" *ngIf="!selectedFolder()">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Today's Appointment Log</h3>
+            <span class="badge-tag highlight-green">LIVE SESSION</span>
+          </div>
+          <div class="ledger-body">
+            <div class="empty-state" *ngIf="todayDoctorAppointments.length === 0">
+              <span class="glyph">📖</span>
+              <p>No appointments booked for today.</p>
+            </div>
+
+            <div class="ledger-item interactive-item" *ngFor="let appt of todayDoctorAppointments">
+              <div class="appt-time-slot">
+                <span class="time-block">{{ appointmentTime(appt) }}</span>
+                <span class="status-marker" [ngClass]="appt.status.toLowerCase()"></span>
+              </div>
+              <div class="appt-details-block">
+                <div class="patient-meta">
+                  <h4>{{ appt.patientName || 'Anonymous Patient' }}</h4>
+                  <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
+                </div>
+                <p class="appt-reason" *ngIf="appt.reason"><strong>Reason:</strong> "{{ appt.reason }}"</p>
+                
+                <div class="appt-actions">
+                  <button 
+                    class="btn btn-primary btn-sm" 
+                    *ngIf="appt.status === 'PENDING'" 
+                    (click)="updateAppointmentStatus(appt.id, 'CONFIRMED')">
+                    Confirm Booking
+                  </button>
+                  <button 
+                    class="btn btn-accent btn-sm" 
+                    *ngIf="appt.status === 'CONFIRMED'" 
+                    (click)="updateAppointmentStatus(appt.id, 'COMPLETED')">
+                    Mark Completed
+                  </button>
+                  <button 
+                    class="btn btn-danger btn-sm" 
+                    *ngIf="appt.status === 'PENDING' || appt.status === 'CONFIRMED'" 
+                    (click)="updateAppointmentStatus(appt.id, 'CANCELLED')">
+                    Cancel Visit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Patient Folder View (Replaces Schedule temporarily) -->
+        <div class="card ledger-card grid-header folder-detail-card" *ngIf="selectedFolder() as folder">
+          <div class="card-header border-ruled">
+            <div class="folder-title">
+              <button class="btn btn-ghost btn-sm back-btn" (click)="closePatientFolder()">← Back</button>
+              <h3 class="card-title font-serif">Patient Record: {{ folder.patientName }}</h3>
+            </div>
+            <span class="badge-tag bg-ink text-white">{{ folder.totalVisits }} VISITS TOTAL</span>
+          </div>
+          
+          <div class="folder-patient-info">
+            <div class="folder-avatar">
+               <img *ngIf="folder.patientPhotoUrl" [src]="folder.patientPhotoUrl" />
+               <span *ngIf="!folder.patientPhotoUrl">{{ patientInitials(folder.patientName) }}</span>
+            </div>
+            <div class="folder-meta">
+               <div class="meta-row"><strong>Email:</strong> {{ folder.patientEmail || 'N/A' }}</div>
+               <div class="meta-row"><strong>Phone:</strong> {{ folder.patientPhone || 'N/A' }}</div>
+            </div>
+          </div>
+
+          <div class="ledger-body max-height-ledger">
+             <div class="empty-state" *ngIf="folderPatientAppointments().length === 0">
+              <span class="glyph">📚</span>
+              <p>No historical records found for this patient.</p>
+             </div>
+             <div class="ledger-item interactive-item" *ngFor="let appt of folderPatientAppointments()">
+               <div class="appt-time-slot">
+                 <span class="time-block">{{ appointmentDate(appt) | date:'MMM d, y' }}</span>
+                 <span class="time-block sub-time">{{ appointmentTime(appt) }}</span>
+               </div>
+               <div class="appt-details-block">
+                 <div class="patient-meta">
+                   <h4>Visit Record</h4>
+                   <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
+                 </div>
+                 <p class="appt-reason" *ngIf="appt.reason"><strong>Notes:</strong> "{{ appt.reason }}"</p>
+                 <div class="appt-actions" *ngIf="appt.status === 'PENDING' || appt.status === 'CONFIRMED'">
+                   <button class="btn btn-accent btn-sm" *ngIf="appt.status === 'CONFIRMED'" (click)="updateAppointmentStatus(appt.id, 'COMPLETED')">Complete</button>
+                   <button class="btn btn-danger btn-sm" (click)="updateAppointmentStatus(appt.id, 'CANCELLED')">Cancel</button>
+                 </div>
+               </div>
+             </div>
+          </div>
+        </div>
+
+        <!-- Future / Other appointments log (Only shown if no folder is open) -->
+        <div class="card ledger-card soft-card" *ngIf="!selectedFolder()">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Future / Archive Logs</h3>
+          </div>
+          <div class="ledger-body">
+            <div class="empty-state" *ngIf="otherDoctorAppointments.length === 0">
+              <span class="glyph">📚</span>
+              <p>No other appointments recorded in your docket.</p>
+            </div>
+
+            <div class="ledger-item" *ngFor="let appt of otherDoctorAppointments">
+              <div class="ledger-meta">
+                <span class="ledger-date">{{ appointmentDate(appt) | date: 'EEEE, MMM d' }}</span>
+                <span class="ledger-time">{{ appointmentTime(appt) }}</span>
+              </div>
+              <div class="ledger-details">
+                <h4>{{ appt.patientName || 'Anonymous Patient' }}</h4>
+                <p class="ledger-reason" *ngIf="appt.reason">"{{ appt.reason }}"</p>
+                <div class="ledger-controls">
+                  <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
+                  <div class="appt-actions inline-actions">
+                    <button 
+                      class="btn btn-primary btn-sm" 
+                      *ngIf="appt.status === 'PENDING'" 
+                      (click)="updateAppointmentStatus(appt.id, 'CONFIRMED')">
+                      Confirm
+                    </button>
+                    <button 
+                      class="btn btn-danger btn-sm" 
+                      *ngIf="appt.status === 'PENDING' || appt.status === 'CONFIRMED'" 
+                      (click)="updateAppointmentStatus(appt.id, 'CANCELLED')">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: Patient Folders Panel & Doctor Registry -->
+      <div class="sidebar-column flex-column">
+        
+        <!-- Patient Folders Panel -->
+        <div class="card folders-card">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Patient Folders</h3>
+            <span class="badge-tag highlight-magenta">{{ patientFolders().length }} PATIENTS</span>
+          </div>
+          <div class="folders-search">
+             <input type="text" placeholder="Search patients..." [(ngModel)]="patientSearchQuery" class="search-input input-sm" />
+          </div>
+          <div class="folders-list">
+             <div class="empty-state" *ngIf="folderLoading()">
+               <app-spinner></app-spinner>
+               <p>Loading records...</p>
+             </div>
+             <div class="empty-state" *ngIf="!folderLoading() && filteredPatientFolders.length === 0">
+               <span class="glyph">📂</span>
+               <p>No patient folders found.</p>
+             </div>
+             
+             <div class="folder-item" *ngFor="let folder of filteredPatientFolders" 
+                  [class.active]="selectedFolder()?.patientId === folder.patientId"
+                  (click)="openPatientFolder(folder)">
+                <div class="folder-avatar">
+                   <img *ngIf="folder.patientPhotoUrl" [src]="folder.patientPhotoUrl" />
+                   <span *ngIf="!folder.patientPhotoUrl">{{ patientInitials(folder.patientName) }}</span>
+                </div>
+                <div class="folder-brief">
+                   <h5>{{ folder.patientName }}</h5>
+                   <span class="last-visit">Last: {{ folder.lastVisit | date:'MMM d, y' }}</span>
+                </div>
+                <div class="folder-stats">
+                   <div class="visit-count" title="Total Visits">{{ folder.totalVisits }}</div>
+                   <div class="status-dot" [ngClass]="statusColor(folder.lastVisitStatus)" [title]="'Last status: ' + folder.lastVisitStatus"></div>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <div class="card info-card bg-pattern" *ngIf="claimedDoctorDetails() as details">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Registry Profile</h3>
+            <span class="badge-tag text-active">ACTIVE LISTING</span>
+          </div>
+          <div class="doctor-profile-details">
+            <div class="profile-details-head">
+              <div class="doc-avatar large">
+                <img [src]="doctorAvatar(details)" />
+              </div>
+              <div class="doc-primary">
+                 <h3>Dr. {{ details.fullName }}</h3>
+                 <p class="specialization-tag">{{ details.specialization }}</p>
+              </div>
+            </div>
+            
+            <div class="profile-meta-list">
+              <div class="meta-item">
+                <span class="meta-lbl">Email Contact:</span>
+                <span class="meta-val">{{ details.email || 'N/A' }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Registry Phone:</span>
+                <span class="meta-val">{{ details.phone || 'N/A' }}</span>
+              </div>
+              <div class="meta-item border-top">
+                <span class="meta-lbl">Shift Start:</span>
+                <span class="meta-val font-mono">{{ details.startTime || '09:00' }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-lbl">Shift End:</span>
+                <span class="meta-val font-mono">{{ details.endTime || '17:00' }}</span>
+              </div>
+            </div>
+            
+            <div class="profile-actions-footer">
+              <button class="btn btn-ghost w-100 btn-sm color-danger" (click)="clearClaimedDoctor()">Claim Another Identity</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- ADMIN DASHBOARD SECTION                    -->
+  <!-- ========================================== -->
+  <div class="dashboard-content admin-module" *ngIf="role() === 'ADMIN'">
+    <!-- Admin Stats Overview -->
+    <div class="stats-row grid-4-cols margin-bottom-lg">
+      <div class="card stat-box bg-sage">
+        <span class="stat-lbl">HEALTH PRACTITIONERS</span>
+        <h2 class="stat-val">{{ doctorsCount() }}</h2>
+        <span class="stat-sub">Physicians registered</span>
+      </div>
+      <div class="card stat-box bg-ink">
+        <span class="stat-lbl">PATIENT ARCHIVES</span>
+        <h2 class="stat-val">{{ patientsCount() }}</h2>
+        <span class="stat-sub">Patients recorded</span>
+      </div>
+      <div class="card stat-box bg-amber">
+        <span class="stat-lbl">PENDING APPROVALS</span>
+        <h2 class="stat-val">{{ adminPendingCount() }}</h2>
+        <span class="stat-sub">Awaiting confirmation</span>
+      </div>
+      <div class="card stat-box bg-slate-dark">
+        <span class="stat-lbl">TOTAL CLINIC VISIT BOOKINGS</span>
+        <h2 class="stat-val">{{ totalAppointmentsCount() }}</h2>
+        <span class="stat-sub">All-time scheduler bookings</span>
+      </div>
+    </div>
+
+    <!-- Admin dashboard columns -->
+    <div class="dashboard-grid">
+      <!-- Left Column: Global Appointments Queue & Doctor Roster -->
+      <div class="main-column flex-column">
+        <!-- Roster card -->
+        <div class="card ledger-card">
+          <div class="card-header border-ruled flex-space-between">
+            <div>
+              <span class="eyebrow">CLINIC STAFF</span>
+              <h3 class="card-title font-serif">Staff Roster Ledger</h3>
+            </div>
+            <button class="btn btn-primary btn-sm" (click)="toggleQuickAddDoctor()">
+              {{ quickAddDoctorOpen() ? 'Close Roster Entry' : 'Add Doctor to Roster' }}
+            </button>
+          </div>
+
+          <!-- Quick add form inside roster card -->
+          <div class="quick-add-form-wrapper" *ngIf="quickAddDoctorOpen()">
+            <h4>New Practitioner File Entry</h4>
+            <div class="form-grid">
+              <div class="field">
+                <label>Full Name</label>
+                <input type="text" [(ngModel)]="newDocName" placeholder="Dr. John Doe" />
+              </div>
+              <div class="field">
+                <label>Specialization</label>
+                <input type="text" [(ngModel)]="newDocSpecialization" placeholder="Cardiologist, General Practitioner, etc." />
+              </div>
+              <div class="field">
+                <label>Email Address</label>
+                <input type="email" [(ngModel)]="newDocEmail" placeholder="john.doe@clinic.com" />
+              </div>
+              <div class="field">
+                <label>Phone Number</label>
+                <input type="text" [(ngModel)]="newDocPhone" placeholder="+1 555-0199" />
+              </div>
+              <div class="field">
+                <label>Shift Start Time</label>
+                <input type="text" [(ngModel)]="newDocShiftStart" placeholder="09:00" />
+              </div>
+              <div class="field">
+                <label>Shift End Time</label>
+                <input type="text" [(ngModel)]="newDocShiftEnd" placeholder="17:00" />
+              </div>
+            </div>
+            <div class="form-actions-row">
+              <button class="btn btn-accent btn-sm" (click)="quickAddDoctor()" [disabled]="quickDocSaving()">
+                <app-spinner *ngIf="quickDocSaving()"></app-spinner>
+                Save Registry File
+              </button>
+              <button class="btn btn-ghost btn-sm" (click)="toggleQuickAddDoctor()">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Doctor Roster Table list -->
+          <div class="ledger-body">
+            <div class="empty-state" *ngIf="adminDoctorsList().length === 0">
+              <span class="glyph">🩺</span>
+              <p>No healthcare providers registered in the roster.</p>
+            </div>
+
+            <div class="roster-table-view" *ngIf="adminDoctorsList().length > 0">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Practitioner Name</th>
+                    <th>Speciality</th>
+                    <th>Duty shift hours</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let doc of adminDoctorsList()">
+                    <td class="td-bold">Dr. {{ doc.fullName }}</td>
+                    <td><span class="tag tag-confirmed">{{ doc.specialization }}</span></td>
+                    <td class="font-mono">{{ doc.startTime || '09:00' }} - {{ doc.endTime || '17:00' }}</td>
+                    <td class="table-actions">
+                      <a [routerLink]="['/doctors', doc.id, 'edit']" class="btn btn-ghost btn-sm text-sage">Edit</a>
+                      <button class="btn btn-danger btn-sm" (click)="deleteDoctor(doc.id)">Remove</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Global Pending Approvals Inbox -->
+        <div class="card ledger-card">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Global Booking Approvals Inbox</h3>
+            <span class="badge-tag highlight-amber">PENDING CONFIRMATION</span>
+          </div>
+          <div class="ledger-body">
+            <div class="empty-state" *ngIf="pendingAdminAppointments.length === 0">
+              <span class="glyph">📥</span>
+              <p>No bookings pending approvals in the global docket.</p>
+            </div>
+
+            <div class="ledger-item" *ngFor="let appt of pendingAdminAppointments">
+              <div class="ledger-meta">
+                <span class="ledger-date">{{ appointmentDate(appt) | date: 'EEEE, MMM d' }}</span>
+                <span class="ledger-time">{{ appointmentTime(appt) }}</span>
+              </div>
+              <div class="ledger-details">
+                <h4>Patient: {{ appt.patientName || 'Anonymous' }} &bull; Provider: Dr. {{ appt.doctorName }}</h4>
+                <p class="ledger-reason" *ngIf="appt.reason"><strong>Reason:</strong> "{{ appt.reason }}"</p>
+                <div class="ledger-controls flex-space-between margin-top-sm">
+                  <span class="tag tag-pending">{{ appt.status }}</span>
+                  <div class="appt-actions">
+                    <button class="btn btn-primary btn-sm" (click)="updateAppointmentStatus(appt.id, 'CONFIRMED')">Confirm Booking</button>
+                    <button class="btn btn-danger btn-sm" (click)="updateAppointmentStatus(appt.id, 'CANCELLED')">Cancel Booking</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: System Logs & All-time bookings ledger -->
+      <div class="sidebar-column flex-column">
+        <div class="card ledger-card soft-card">
+          <div class="card-header border-ruled">
+            <h3 class="card-title font-serif">Clinic-wide Bookings Docket</h3>
+          </div>
+          <div class="ledger-body max-height-ledger">
+            <div class="empty-state" *ngIf="adminAppointments().length === 0">
+              <span class="glyph">📚</span>
+              <p>No appointments created globally in the scheduler.</p>
+            </div>
+
+            <div class="ledger-item" *ngFor="let appt of adminAppointments()">
+              <div class="ledger-meta">
+                <span class="ledger-date">{{ appointmentDate(appt) | date: 'MMM d, y' }}</span>
+                <span class="ledger-time font-mono">{{ appointmentTime(appt) }}</span>
+              </div>
+              <div class="ledger-details">
+                <h4>Dr. {{ appt.doctorName }} &larr; {{ appt.patientName || 'Anonymous' }}</h4>
+                <div class="ledger-controls flex-space-between margin-top-sm">
+                  <span class="tag" [ngClass]="'tag-' + appt.status.toLowerCase()">{{ appt.status }}</span>
+                  <div class="appt-actions inline-actions" *ngIf="appt.status === 'PENDING' || appt.status === 'CONFIRMED'">
+                    <button class="btn btn-danger btn-sm" (click)="updateAppointmentStatus(appt.id, 'CANCELLED')">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

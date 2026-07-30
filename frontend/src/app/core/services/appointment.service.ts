@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Appointment, AppointmentRequest, AppointmentStatus, Page, TimeSlot } from '../models/appointment.model';
+import { map } from 'rxjs/operators';
+import { Appointment, AppointmentRequest, AppointmentStatus, AvailableSlot, Page, TimeSlot } from '../models/appointment.model';
+import { PatientFolder } from '../models/patient-folder.model';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
@@ -13,9 +15,21 @@ export class AppointmentService {
     return this.http.post<Appointment>(this.base, payload);
   }
 
-  availableSlots(doctorId: number, date: string): Observable<TimeSlot[]> {
+  getById(id: number): Observable<Appointment> {
+    return this.http.get<Appointment>(`${this.base}/${id}`);
+  }
+
+  /** Returns available time slots as AvailableSlot[] from backend */
+  availableSlots(doctorId: number, date: string): Observable<AvailableSlot[]> {
     const params = new HttpParams().set('doctorId', doctorId).set('date', date);
-    return this.http.get<TimeSlot[]>(`${this.base}/available-slots`, { params });
+    return this.http.get<AvailableSlot[]>(`${this.base}/available-slots`, { params });
+  }
+
+  /** Converts AvailableSlot[] into TimeSlot[] for booking UI */
+  availableSlotsAsTimeSlots(doctorId: number, date: string): Observable<TimeSlot[]> {
+    return this.availableSlots(doctorId, date).pipe(
+      map(slots => slots.map(s => ({ startTime: s.time, available: true })))
+    );
   }
 
   forPatient(patientId: number): Observable<Appointment[]> {
@@ -27,6 +41,10 @@ export class AppointmentService {
     return this.http.get<Page<Appointment>>(`${this.base}/doctor/${doctorId}`, { params });
   }
 
+  patientFolders(doctorId: number): Observable<PatientFolder[]> {
+    return this.http.get<PatientFolder[]>(`${this.base}/doctor/${doctorId}/patients`);
+  }
+
   updateStatus(id: number, status: AppointmentStatus): Observable<Appointment> {
     const params = new HttpParams().set('status', status);
     return this.http.patch<Appointment>(`${this.base}/${id}/status`, {}, { params });
@@ -34,5 +52,20 @@ export class AppointmentService {
 
   cancel(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  /** Helper: combine date (YYYY-MM-DD) and time (HH:mm) into LocalDateTime string */
+  static toLocalDateTime(date: string, time: string): string {
+    return `${date}T${time}:00`;
+  }
+
+  /** Helper: extract date from appointmentTime ISO string */
+  static extractDate(appointmentTime: string): string {
+    return appointmentTime ? appointmentTime.substring(0, 10) : '';
+  }
+
+  /** Helper: extract time HH:mm from appointmentTime ISO string */
+  static extractTime(appointmentTime: string): string {
+    return appointmentTime ? appointmentTime.substring(11, 16) : '';
   }
 }

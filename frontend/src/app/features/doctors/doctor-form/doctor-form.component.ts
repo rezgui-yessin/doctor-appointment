@@ -29,10 +29,10 @@ export class DoctorFormComponent implements OnInit {
     this.form = this.fb.nonNullable.group({
       fullName: ['', [Validators.required, Validators.minLength(2)]],
       specialization: ['', [Validators.required]],
-      email: ['', [Validators.email]],
+      email: ['', [Validators.required, Validators.email]],
       phone: [''],
-      shiftStart: ['09:00', [Validators.required]],
-      shiftEnd: ['17:00', [Validators.required]],
+      startTime: ['09:00', [Validators.required]],
+      endTime: ['17:00', [Validators.required]],
     });
   }
 

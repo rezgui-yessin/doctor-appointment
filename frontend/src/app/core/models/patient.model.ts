@@ -4,6 +4,7 @@ export interface Patient {
   email?: string;
   phone?: string;
   dateOfBirth?: string;
+  photoUrl?: string;
 }
 
 export interface PatientRequest {
@@ -11,4 +12,5 @@ export interface PatientRequest {
   email?: string;
   phone?: string;
   dateOfBirth?: string;
+  photoUrl?: string;
 }

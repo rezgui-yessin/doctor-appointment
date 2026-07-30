@@ -25,7 +25,9 @@
     <div class="two-col">
       <div class="field">
         <label for="email">Email</label>
-        <input id="email" formControlName="email" placeholder="doctor@clinic.com">
+        <input id="email" formControlName="email" placeholder="doctor@clinic.com"
+               [class.invalid]="form.controls.email.invalid && form.controls.email.touched">
+        <span class="error" *ngIf="form.controls.email.invalid && form.controls.email.touched">Valid email is required.</span>
       </div>
       <div class="field">
         <label for="phone">Phone</label>
@@ -36,11 +38,11 @@
     <div class="two-col">
       <div class="field">
         <label for="shiftStart">Shift start</label>
-        <input id="shiftStart" type="time" formControlName="shiftStart">
+        <input id="shiftStart" type="time" formControlName="startTime">
       </div>
       <div class="field">
         <label for="shiftEnd">Shift end</label>
-        <input id="shiftEnd" type="time" formControlName="shiftEnd">
+        <input id="shiftEnd" type="time" formControlName="endTime">
       </div>
     </div>
 

@@ -26,8 +26,10 @@
       <div class="info">
         <h3>{{ d.fullName }}</h3>
         <span class="tag tag-confirmed">{{ d.specialization }}</span>
-        <p class="meta" *ngIf="d.shiftStart && d.shiftEnd">Shift {{ d.shiftStart }}–{{ d.shiftEnd }}</p>
-        <p class="meta" *ngIf="d.email">{{ d.email }}</p>
+        <p class="meta" *ngIf="d.startTime && d.endTime">🕐 Shift {{ d.startTime }}–{{ d.endTime }}</p>
+        <p class="meta" *ngIf="d.workingDays">📅 {{ d.workingDays }}</p>
+        <p class="meta" *ngIf="d.email">✉ {{ d.email }}</p>
+        <p class="meta" *ngIf="d.phone">📞 {{ d.phone }}</p>
       </div>
       <div class="actions" *ngIf="auth.role() === 'ADMIN'">
         <a [routerLink]="['/doctors', d.id, 'edit']" class="btn btn-ghost btn-sm">Edit</a>

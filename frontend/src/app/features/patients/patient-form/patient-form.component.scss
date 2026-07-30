@@ -1,20 +1,126 @@
-.narrow { max-width: 560px; }
+.narrow { max-width: 640px; }
 .page-head { margin-bottom: 1.5rem; }
 .page-head h1 { margin-top: 0.3rem; }
 .sub { color: var(--slate); font-size: 0.88rem; }
 
 .form-card { padding: 2rem; }
+
+/* ── Photo Section ── */
+.photo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+}
+
+.avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar-display {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: var(--card-bg, #1e293b);
+  border: 3px solid var(--accent, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.25);
+    .avatar-overlay { opacity: 1; }
+  }
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-initials {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--accent, #6366f1);
+  letter-spacing: 0.05em;
+  user-select: none;
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 50%;
+
+  .overlay-icon { font-size: 1.5rem; }
+  .overlay-text { font-size: 0.72rem; color: #fff; font-weight: 600; letter-spacing: 0.05em; }
+}
+
+.avatar-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn-danger-ghost {
+  color: #f87171 !important;
+  border-color: #f87171 !important;
+  &:hover { background: rgba(248, 113, 113, 0.1) !important; }
+}
+
+.photo-hint p {
+  font-size: 0.78rem;
+  color: var(--slate, #94a3b8);
+  text-align: center;
+}
+
+/* ── Divider ── */
+.form-divider {
+  height: 1px;
+  background: var(--line, rgba(255,255,255,0.07));
+  margin: 0.5rem 0 1.5rem;
+}
+
+/* ── Two-column ── */
 .two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+
+/* ── Actions ── */
 .form-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: 1rem;
   margin-top: 0.5rem;
   padding-top: 1rem;
   border-top: 1px solid var(--line);
+}
+
+.unsaved-indicator {
+  font-size: 0.8rem;
+  color: #fbbf24;
+  font-weight: 500;
 }
 
 @media (max-width: 560px) {

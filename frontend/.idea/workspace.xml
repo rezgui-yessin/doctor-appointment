@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="6202754f-8734-46f5-a790-0b4b94f8121c" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../doctor-appointment-system" beforeDir="false" afterPath="$PROJECT_DIR$/../doctor-appointment-system" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/core/models/appointment.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/core/models/appointment.model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/core/models/doctor.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/core/models/doctor.model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/core/services/appointment.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/core/services/appointment.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/core/services/doctor.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/core/services/doctor.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/core/services/patient.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/core/services/patient.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/appointments/appointment-list/appointment-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/appointments/appointment-list/appointment-list.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/appointments/appointment-list/appointment-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/appointments/appointment-list/appointment-list.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/appointments/booking/booking.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/appointments/booking/booking.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/appointments/booking/booking.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/appointments/booking/booking.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/appointments/booking/booking.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/appointments/booking/booking.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/dashboard/dashboard.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/dashboard/dashboard.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/dashboard/dashboard.component.scss" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/dashboard/dashboard.component.scss" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/dashboard/dashboard.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/dashboard/dashboard.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/doctors/doctor-list/doctor-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/doctors/doctor-list/doctor-list.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/features/doctors/doctor-list/doctor-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/features/doctors/doctor-list/doctor-list.component.ts" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_C:/Users/yassine/Desktop/docterAppoment/frontend" value="3GzKTE02OZEJ6dOKU1hS9loO9nB" />
+    </persistenceIdMap>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 3
+}]]></component>
+  <component name="ProjectId" id="3GzKTE02OZEJ6dOKU1hS9loO9nB" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "copilot.chat.legacySessionMetadata.migrated": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager" selected="npm.Angular CLI Server">
+    <configuration name="Angular Application" type="JavascriptDebugType" uri="http://localhost:4200">
+      <method v="2" />
+    </configuration>
+    <configuration name="Angular CLI Server" type="js.build_tools.npm">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="start" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-26cb7f24e5b0-intellij.indexing.shared.core-IU-253.29346.138" />
+        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.29346.138" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6202754f-8734-46f5-a790-0b4b94f8121c" name="Changes" comment="" />
+      <created>1784968962676</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1784968962676</updated>
+      <workItem from="1784968963802" duration="11000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

@@ -33,4 +33,8 @@ export class PatientService {
   update(id: number, payload: PatientRequest): Observable<Patient> {
     return this.http.put<Patient>(`${this.base}/${id}`, payload);
   }
+
+  list(): Observable<Patient[]> {
+    return this.http.get<Patient[]>(this.base);
+  }
 }

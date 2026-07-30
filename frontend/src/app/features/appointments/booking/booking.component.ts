@@ -6,7 +6,7 @@ import { DoctorService } from '../../../core/services/doctor.service';
 import { PatientService } from '../../../core/services/patient.service';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { Doctor } from '../../../core/models/doctor.model';
-import { TimeSlot } from '../../../core/models/appointment.model';
+import { AvailableSlot } from '../../../core/models/appointment.model';
 import { ToastService } from '../../../core/services/toast.service';
 import { SpinnerComponent } from '../../../shared/components/spinner/spinner.component';
 
@@ -25,7 +25,7 @@ function todayIso(): string {
 })
 export class BookingComponent implements OnInit {
   doctors = signal<Doctor[]>([]);
-  slots = signal<TimeSlot[]>([]);
+  slots = signal<AvailableSlot[]>([]);
   loadingDoctors = signal(false);
   loadingSlots = signal(false);
   booking = signal(false);
@@ -33,13 +33,13 @@ export class BookingComponent implements OnInit {
   selectedDoctorId: number | null = null;
   selectedDate = todayIso();
   minDate = todayIso();
-  selectedSlot = signal<TimeSlot | null>(null);
+  selectedSlot = signal<AvailableSlot | null>(null);
   reason = '';
 
   patientId: number | null = null;
 
   selectedDoctor = computed(() => this.doctors().find((d) => d.id === this.selectedDoctorId) ?? null);
-  availableCount = computed(() => this.slots().filter((s) => s.available).length);
+  availableCount = computed(() => this.slots().length);
 
   constructor(
     private doctorService: DoctorService,
@@ -80,6 +80,7 @@ export class BookingComponent implements OnInit {
     if (!this.selectedDoctorId || !this.selectedDate) return;
     this.loadingSlots.set(true);
     this.slots.set([]);
+    // Backend returns AvailableSlotDTO(time) - list of available slots only
     this.appointmentService.availableSlots(this.selectedDoctorId, this.selectedDate).subscribe({
       next: (slots) => {
         this.slots.set(slots);
@@ -87,14 +88,17 @@ export class BookingComponent implements OnInit {
       },
       error: () => {
         this.loadingSlots.set(false);
-        this.toast.show('Could not load this doctor\u2019s day sheet.', 'error');
+        this.toast.show("Could not load this doctor's day sheet.", 'error');
       },
     });
   }
 
-  pick(slot: TimeSlot): void {
-    if (!slot.available) return;
+  pick(slot: AvailableSlot): void {
     this.selectedSlot.set(slot);
+  }
+
+  avatarFor(doctor: Doctor): string {
+    return DoctorService.avatarFor(doctor);
   }
 
   confirmBooking(): void {
@@ -106,23 +110,22 @@ export class BookingComponent implements OnInit {
       return;
     }
     this.booking.set(true);
+    const appointmentTime = AppointmentService.toLocalDateTime(this.selectedDate, slot.time);
     this.appointmentService
       .book({
         doctorId: this.selectedDoctorId,
         patientId: this.patientId,
-        date: this.selectedDate,
-        startTime: slot.startTime,
+        appointmentTime,
         reason: this.reason || undefined,
       })
       .subscribe({
         next: () => {
           this.booking.set(false);
-          this.toast.show(`Booked for ${slot.startTime} on ${this.selectedDate}.`, 'success');
+          this.toast.show(`Booked for ${slot.time} on ${this.selectedDate}.`, 'success');
           this.router.navigate(['/appointments']);
         },
         error: () => {
           this.booking.set(false);
-          // The interceptor already surfaces 409 conflicts; refresh the ledger either way.
           this.fetchSlots();
           this.selectedSlot.set(null);
         },

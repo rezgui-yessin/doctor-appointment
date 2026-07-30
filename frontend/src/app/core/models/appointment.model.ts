@@ -1,29 +1,33 @@
 export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
 
+/** Matches the backend AppointmentResponseDTO */
 export interface Appointment {
   id: number;
   doctorId: number;
   doctorName?: string;
   patientId: number;
   patientName?: string;
-  date: string;
-  startTime: string;
-  endTime?: string;
+  appointmentTime: string;   // ISO-8601 LocalDateTime from backend e.g. "2026-07-25T09:00:00"
   status: AppointmentStatus;
   reason?: string;
 }
 
+/** Matches the backend AppointmentRequestDTO */
 export interface AppointmentRequest {
   doctorId: number;
   patientId: number;
-  date: string;
-  startTime: string;
+  appointmentTime: string;  // ISO-8601 LocalDateTime e.g. "2026-07-25T09:00:00"
   reason?: string;
 }
 
+/** Matches the backend AvailableSlotDTO(time) */
+export interface AvailableSlot {
+  time: string; // "09:00"
+}
+
+/** Legacy TimeSlot used in booking UI */
 export interface TimeSlot {
   startTime: string;
-  endTime: string;
   available: boolean;
 }
 

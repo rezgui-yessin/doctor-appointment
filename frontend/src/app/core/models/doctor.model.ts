@@ -4,8 +4,10 @@ export interface Doctor {
   specialization: string;
   email?: string;
   phone?: string;
-  shiftStart?: string;
-  shiftEnd?: string;
+  workingDays?: string;
+  startTime?: string;
+  endTime?: string;
+  photoUrl?: string;
 }
 
 export interface DoctorRequest {
@@ -13,6 +15,8 @@ export interface DoctorRequest {
   specialization: string;
   email?: string;
   phone?: string;
-  shiftStart?: string;
-  shiftEnd?: string;
+  workingDays?: string;
+  startTime?: string;
+  endTime?: string;
+  photoUrl?: string;
 }

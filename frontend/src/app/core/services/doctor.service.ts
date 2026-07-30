@@ -11,9 +11,7 @@ export class DoctorService {
 
   constructor(private http: HttpClient) {}
 
-  /** Local pointer to which doctor record this browser is signed in as —
-   * the README's JWT doesn't expose a doctorId claim, so a doctor picks
-   * their own listing once and it's remembered on this device. */
+  /** Local pointer to which doctor record this browser is signed in as */
   getMyDoctorId(): number | null {
     const stored = localStorage.getItem(DOCTOR_ID_KEY);
     return stored ? Number(stored) : null;
@@ -21,6 +19,10 @@ export class DoctorService {
 
   setMyDoctorId(id: number): void {
     localStorage.setItem(DOCTOR_ID_KEY, String(id));
+  }
+
+  clearMyDoctorId(): void {
+    localStorage.removeItem(DOCTOR_ID_KEY);
   }
 
   list(specialization?: string): Observable<Doctor[]> {
@@ -43,5 +45,26 @@ export class DoctorService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  /** Returns a fallback avatar URL based on doctor id */
+  static fallbackAvatar(doctorId: number): string {
+    const avatars = [
+      'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&h=200&q=80&auto=format&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&q=80&auto=format&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&h=200&q=80&auto=format&fit=crop&crop=face',
+      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&h=200&q=80&auto=format&fit=crop&crop=face',
+    ];
+    return avatars[doctorId % avatars.length];
+  }
+
+  /** Returns doctor photo URL or fallback */
+  static avatarFor(doctor: Doctor): string {
+    return doctor.photoUrl || DoctorService.fallbackAvatar(doctor.id);
+  }
+
+  /** Generate initials for fallback avatar text */
+  static initials(name: string): string {
+    return name.split(' ').filter(Boolean).slice(0, 2).map(p => p[0]?.toUpperCase()).join('');
   }
 }

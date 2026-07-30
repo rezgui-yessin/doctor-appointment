@@ -22,13 +22,6 @@ export class DoctorListComponent implements OnInit {
   query = '';
   pendingDelete = signal<Doctor | null>(null);
 
-  /** Stock portrait photos (Unsplash License, free to use) used as
-   * placeholder avatars since the API doesn't store a doctor photo. */
-  private readonly avatarPhotos = [
-    'https://images.unsplash.com/photo-1758691462651-611d730c5272?w=200&h=200&q=80&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1758691463333-c79215e8bc3b?w=200&h=200&q=80&auto=format&fit=crop',
-  ];
-
   constructor(private doctorService: DoctorService, public auth: AuthService, private toast: ToastService) {}
 
   ngOnInit(): void {
@@ -47,16 +40,11 @@ export class DoctorListComponent implements OnInit {
   }
 
   initials(name: string): string {
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((p) => p[0]?.toUpperCase())
-      .join('');
+    return DoctorService.initials(name);
   }
 
   avatarFor(doctor: Doctor): string {
-    return this.avatarPhotos[doctor.id % this.avatarPhotos.length];
+    return DoctorService.avatarFor(doctor);
   }
 
   confirmDelete(): void {

@@ -25,8 +25,8 @@
   <div class="entries" *ngIf="!loading() && appointments().length > 0">
     <div class="entry card" *ngFor="let a of appointments()">
       <div class="when">
-        <span class="date">{{ a.date }}</span>
-        <span class="time">{{ a.startTime }}</span>
+        <span class="date">{{ a.appointmentTime | date: 'EEE, MMM d, y' }}</span>
+        <span class="time">{{ a.appointmentTime | date: 'HH:mm' }}</span>
       </div>
       <div class="who">
         <h3 *ngIf="isPatientView">{{ a.doctorName || ('Doctor #' + a.doctorId) }}</h3>

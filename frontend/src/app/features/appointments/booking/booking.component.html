@@ -1,77 +1,141 @@
 <div class="page-shell">
-  <header class="page-head">
-    <span class="eyebrow">New booking</span>
-    <h1>Book a visit</h1>
-    <p class="sub">Choose a doctor and date to open their day sheet, then pick an open slot.</p>
-  </header>
-
-  <div class="no-profile" *ngIf="!patientId">
-    <span>You'll need a profile before booking.</span>
-    <a routerLink="/my-profile" class="btn btn-accent btn-sm">Complete profile</a>
+  <!-- Loading Overlay -->
+  <div class="booking-overlay" *ngIf="booking()">
+    <app-spinner></app-spinner>
+    <p>Confirming your appointment...</p>
   </div>
 
-  <div class="booking-grid">
-    <div class="controls card">
-      <div class="field">
-        <label for="doctor">Doctor</label>
-        <select id="doctor" [(ngModel)]="selectedDoctorId" (ngModelChange)="onDoctorChange()">
-          <option [ngValue]="null" disabled>Choose a doctor</option>
-          <option *ngFor="let d of doctors()" [ngValue]="d.id">{{ d.fullName }} — {{ d.specialization }}</option>
-        </select>
+  <header class="booking-head">
+    <div class="head-info">
+      <span class="eyebrow highlight-sage">CLINICAL SCHEDULER</span>
+      <h1 class="welcome-title">Book an Appointment</h1>
+      <p class="sub-welcome">Select a specialist, choose a date, and reserve your time slot.</p>
+    </div>
+  </header>
+
+  <div class="card alert-card warning-alert margin-bottom-lg" *ngIf="!patientId">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-body">
+      <h4>Profile Required</h4>
+      <p>You must complete your patient profile details before booking an appointment.</p>
+      <a routerLink="/my-profile" class="btn btn-primary btn-sm">Complete Profile</a>
+    </div>
+  </div>
+
+  <div class="booking-layout">
+    <!-- Left Panel: Doctor & Date Selection -->
+    <div class="booking-panel controls-panel">
+      
+      <div class="panel-section">
+        <h3 class="section-title">1. Select Specialist</h3>
+        <div class="field">
+          <select [(ngModel)]="selectedDoctorId" (ngModelChange)="onDoctorChange()" class="premium-select">
+            <option [ngValue]="null" disabled>-- Choose a specialist --</option>
+            <option *ngFor="let d of doctors()" [ngValue]="d.id">Dr. {{ d.fullName }} ({{ d.specialization }})</option>
+          </select>
+        </div>
+
+        <!-- Doctor preview card -->
+        <div class="doctor-profile-card" *ngIf="selectedDoctor() as doc" [class.fade-in]="doc">
+          <div class="doc-header">
+            <img class="doc-avatar large" [src]="avatarFor(doc)" [alt]="doc.fullName" />
+            <div class="doc-info">
+              <h4>Dr. {{ doc.fullName }}</h4>
+              <span class="badge-tag highlight-green">{{ doc.specialization }}</span>
+            </div>
+          </div>
+          <div class="doc-meta-grid">
+            <div class="meta-item">
+              <span class="meta-lbl">Schedule</span>
+              <span class="meta-val">{{ doc.workingDays || 'Mon-Fri' }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-lbl">Hours</span>
+              <span class="meta-val">{{ doc.startTime || '09:00' }} - {{ doc.endTime || '17:00' }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="field">
-        <label for="date">Date</label>
-        <input id="date" type="date" [(ngModel)]="selectedDate" [min]="minDate" (ngModelChange)="onDateChange()">
+      <div class="panel-section" [class.disabled-section]="!selectedDoctorId">
+        <h3 class="section-title">2. Choose Date</h3>
+        <div class="field">
+          <input type="date" [(ngModel)]="selectedDate" [min]="minDate" (ngModelChange)="onDateChange()" class="premium-input" [disabled]="!selectedDoctorId">
+        </div>
       </div>
 
-      <div class="field">
-        <label for="reason">Reason for visit (optional)</label>
-        <textarea id="reason" rows="3" [(ngModel)]="reason" placeholder="Follow-up, annual check-up, new symptom…"></textarea>
+      <div class="panel-section" [class.disabled-section]="!selectedDoctorId">
+        <h3 class="section-title">3. Reason for Visit <span class="optional-txt">(Optional)</span></h3>
+        <div class="field">
+          <textarea [(ngModel)]="reason" placeholder="Briefly describe the reason for your visit..." rows="3" class="premium-input" [disabled]="!selectedDoctorId"></textarea>
+        </div>
       </div>
 
-      <div class="summary" *ngIf="selectedSlot() as slot">
-        <span class="eyebrow">Selected</span>
-        <p class="summary-line">{{ selectedDoctor()?.fullName }} &middot; {{ selectedDate }} at {{ slot.startTime }}</p>
-        <button class="btn btn-accent full" [disabled]="booking()" (click)="confirmBooking()">
-          {{ booking() ? 'Booking…' : 'Confirm booking' }}
-        </button>
-      </div>
     </div>
 
-    <div class="ledger card">
-      <div class="ledger-header">
-        <div>
-          <span class="eyebrow">Day sheet</span>
-          <h3 *ngIf="selectedDoctor(); else pickDoctor">{{ selectedDoctor()?.fullName }} &middot; {{ selectedDate }}</h3>
-          <ng-template #pickDoctor><h3>Pick a doctor to see their day</h3></ng-template>
+    <!-- Right Panel: Time Slots -->
+    <div class="booking-panel slots-panel card">
+      <div class="panel-header border-ruled">
+        <div class="header-titles">
+          <span class="eyebrow">Available Slots</span>
+          <h3 *ngIf="selectedDoctor(); else pickDoctorTitle">Dr. {{ selectedDoctor()?.fullName }}</h3>
+          <ng-template #pickDoctorTitle><h3>Select a doctor first</h3></ng-template>
         </div>
-        <span class="count" *ngIf="slots().length">{{ availableCount() }} open</span>
+        <div class="count-badge" *ngIf="slots().length > 0">
+          {{ availableCount() }} open slots
+        </div>
       </div>
 
-      <app-spinner *ngIf="loadingSlots()" label="Ruling the day sheet…"></app-spinner>
+      <div class="slots-body">
+        
+        <!-- Loading State -->
+        <div class="state-container" *ngIf="loadingSlots()">
+          <app-spinner></app-spinner>
+          <p>Retrieving available time slots...</p>
+        </div>
 
-      <div class="empty-state" *ngIf="!loadingSlots() && selectedDoctorId && slots().length === 0">
-        <div class="glyph">&mdash;</div>
-        <h3>No slots configured</h3>
-        <p>This doctor has no shift on this date.</p>
+        <!-- Initial State (No Doctor Selected) -->
+        <div class="state-container empty-state" *ngIf="!loadingSlots() && !selectedDoctorId">
+          <div class="huge-icon">🩺</div>
+          <h4>No Specialist Selected</h4>
+          <p>Please select a doctor and date from the panel to view available appointment slots.</p>
+        </div>
+
+        <!-- Empty State (No Slots Available) -->
+        <div class="state-container empty-state" *ngIf="!loadingSlots() && selectedDoctorId && slots().length === 0">
+          <div class="huge-icon">🗓️</div>
+          <h4>No Slots Available</h4>
+          <p>This doctor has no open slots on <strong>{{ selectedDate | date:'fullDate' }}</strong>.</p>
+          <p class="sub-text">They may be fully booked or it may be outside their working schedule ({{ selectedDoctor()?.workingDays }}).</p>
+        </div>
+
+        <!-- Slots Grid -->
+        <div class="slots-grid-container" *ngIf="!loadingSlots() && slots().length > 0">
+          <p class="slots-date-label">Available times for <strong>{{ selectedDate | date:'fullDate' }}</strong>:</p>
+          
+          <div class="slots-grid">
+            <button 
+              type="button"
+              class="slot-btn" 
+              *ngFor="let s of slots()"
+              [class.selected]="selectedSlot() === s"
+              (click)="pick(s)">
+              <span class="slot-time">{{ s.time }}</span>
+              <span class="slot-status">Available</span>
+            </button>
+          </div>
+        </div>
+
       </div>
 
-      <div class="rule" *ngIf="!loadingSlots() && slots().length > 0">
-        <button
-          type="button"
-          class="rule-row"
-          *ngFor="let s of slots()"
-          [class.taken]="!s.available"
-          [class.selected]="selectedSlot() === s"
-          [disabled]="!s.available"
-          (click)="pick(s)">
-          <span class="tick"></span>
-          <span class="time">{{ s.startTime }}</span>
-          <span class="line"></span>
-          <span class="state" [class.state-open]="s.available" [class.state-taken]="!s.available">
-            {{ s.available ? 'open' : 'booked' }}
-          </span>
+      <!-- Confirmation Footer -->
+      <div class="panel-footer" *ngIf="selectedSlot() as slot">
+        <div class="summary-details">
+          <span class="eyebrow">Ready to Book</span>
+          <p class="summary-text"><strong>{{ selectedDate | date:'mediumDate' }}</strong> at <strong>{{ slot.time }}</strong> with Dr. {{ selectedDoctor()?.fullName }}</p>
+        </div>
+        <button class="btn btn-primary book-action-btn" [disabled]="booking()" (click)="confirmBooking()">
+          {{ booking() ? 'Confirming...' : 'Confirm Appointment' }}
         </button>
       </div>
     </div>

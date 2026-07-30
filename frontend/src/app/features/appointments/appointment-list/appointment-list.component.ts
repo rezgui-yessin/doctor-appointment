@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AppointmentService } from '../../../core/services/appointment.service';
@@ -101,7 +101,7 @@ export class AppointmentListComponent implements OnInit {
   }
 
   private sortByDateDesc(list: Appointment[]): Appointment[] {
-    return [...list].sort((a, b) => (a.date + a.startTime < b.date + b.startTime ? 1 : -1));
+    return [...list].sort((a, b) => (a.appointmentTime < b.appointmentTime ? 1 : -1));
   }
 
   setStatus(appt: Appointment, status: AppointmentStatus): void {
