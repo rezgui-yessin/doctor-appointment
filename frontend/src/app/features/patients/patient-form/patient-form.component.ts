@@ -64,14 +64,19 @@ export class PatientFormComponent implements OnInit {
     reader.onload = (e) => this.photoPreview.set(e.target?.result as string);
     reader.readAsDataURL(file);
 
-    // Upload to backend
+    // Use patient ID or email as the Cloudinary public_id
+    const entityId = this.patientId
+      ? String(this.patientId)
+      : (this.form.get('email')?.value || 'patient');
+
+    // Upload to Cloudinary via backend
     this.uploading.set(true);
-    this.uploadService.uploadPhoto(file).subscribe({
+    this.uploadService.uploadPhoto(file, entityId).subscribe({
       next: (res) => {
         this.form.patchValue({ photoUrl: res.url });
         this.photoPreview.set(res.url);
         this.uploading.set(false);
-        this.toast.show('Photo uploaded successfully!', 'success');
+        this.toast.show('Photo uploaded to Cloudinary!', 'success');
       },
       error: (err) => {
         this.uploading.set(false);
