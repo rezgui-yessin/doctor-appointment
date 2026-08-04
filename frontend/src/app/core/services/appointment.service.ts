@@ -57,6 +57,10 @@ export class AppointmentService {
     return this.http.get<PatientFolder[]>(`${this.base}/doctor/${doctorId}/patients`);
   }
 
+  createPatientFolder(doctorId: number, payload: import('../models/patient-folder.model').CreatePatientFolderRequest): Observable<PatientFolder> {
+    return this.http.post<PatientFolder>(`${this.base}/doctor/${doctorId}/patients`, payload);
+  }
+
   updateStatus(id: number, status: AppointmentStatus): Observable<Appointment> {
     const params = new HttpParams().set('status', status);
     return this.http.patch<Appointment>(`${this.base}/${id}/status`, {}, { params });

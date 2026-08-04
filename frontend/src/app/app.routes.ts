@@ -54,5 +54,17 @@ export const routes: Routes = [
         (m) => m.AppointmentListComponent
       ),
   },
+  {
+    path: 'doctor/dashboard',
+    canActivate: [roleGuard],
+    data: { roles: ['DOCTOR', 'ADMIN'] },
+    loadComponent: () => import('./features/doctors/doctor-dashboard/doctor-dashboard.component').then((m) => m.DoctorDashboardComponent),
+  },
+  {
+    path: 'doctor/patients',
+    canActivate: [roleGuard],
+    data: { roles: ['DOCTOR', 'ADMIN'] },
+    loadComponent: () => import('./features/doctors/patient-folders/patient-folders.component').then((m) => m.PatientFoldersComponent),
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];

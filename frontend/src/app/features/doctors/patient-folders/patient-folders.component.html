@@ -1,0 +1,192 @@
+<div class="page-shell">
+  <header class="page-head">
+    <div>
+      <span class="eyebrow">Medical Records</span>
+      <h1>Patient Folders</h1>
+    </div>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      + Add Patient Folder
+    </button>
+  </header>
+
+  <div class="search-row">
+    <input
+      type="search"
+      [(ngModel)]="searchTerm"
+      (input)="applyFilter()"
+      placeholder="Search patient by name, email, or phone…"
+      class="search-input"
+    />
+  </div>
+
+  <app-spinner *ngIf="loading()" label="Loading patient folders…"></app-spinner>
+
+  <div *ngIf="!loading() && filteredFolders().length === 0" class="empty-state">
+    <div class="glyph">📁</div>
+    <h3>No patient folders found</h3>
+    <p>Click "+ Add Patient Folder" above to assign an existing patient or register a new one.</p>
+  </div>
+
+  <div class="folders-grid" *ngIf="!loading() && filteredFolders().length > 0">
+    <div class="folder-card card" *ngFor="let folder of filteredFolders()" (click)="openPatientFolder(folder)">
+      <div class="card-header">
+        <img class="avatar" [src]="avatarFor(folder)" [alt]="folder.patientName" loading="lazy" />
+        <div class="patient-main">
+          <h3>{{ folder.patientName }}</h3>
+          <span class="badge badge-visits">{{ folder.totalVisits }} {{ folder.totalVisits === 1 ? 'Visit' : 'Visits' }}</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <p class="meta" *ngIf="folder.patientEmail">✉ {{ folder.patientEmail }}</p>
+        <p class="meta" *ngIf="folder.patientPhone">📞 {{ folder.patientPhone }}</p>
+        <div class="last-visit" *ngIf="folder.lastVisit">
+          <span>Last Visit:</span>
+          <strong>{{ folder.lastVisit | date:'mediumDate' }}</strong>
+          <span class="status-pill" [class]="folder.lastVisitStatus.toLowerCase()">{{ folder.lastVisitStatus }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn btn-ghost btn-sm">View Folder Details &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Patient Details & Consultation History Modal Overlay -->
+<div *ngIf="selectedPatient()" class="custom-modal-backdrop" (click)="closeModal()">
+  <div class="custom-modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-patient-header">
+      <img class="modal-avatar" [src]="avatarFor(selectedPatient()!)" [alt]="selectedPatient()!.patientName" />
+      <div>
+        <h2>{{ selectedPatient()!.patientName }}</h2>
+        <p class="meta-sub">
+          <span *ngIf="selectedPatient()!.patientEmail">✉ {{ selectedPatient()!.patientEmail }} &bull; </span>
+          <span *ngIf="selectedPatient()!.patientPhone">📞 {{ selectedPatient()!.patientPhone }} &bull; </span>
+          <span>Total Visits: {{ selectedPatient()!.totalVisits }}</span>
+        </p>
+      </div>
+      <button class="close-btn" (click)="closeModal()">&times;</button>
+    </div>
+
+    <hr class="divider" />
+
+    <h3>Appointment History</h3>
+    <app-spinner *ngIf="loadingAppointments()" label="Fetching appointment history…"></app-spinner>
+
+    <div *ngIf="!loadingAppointments() && patientAppointments().length === 0" class="empty-sub">
+      <p>No historical appointment records found for this patient.</p>
+    </div>
+
+    <div *ngIf="!loadingAppointments() && patientAppointments().length > 0" class="history-list">
+      <div class="history-card" *ngFor="let app of patientAppointments()">
+        <div class="history-main">
+          <span class="date-tag">📅 {{ app.appointmentTime | date:'medium' }}</span>
+          <span class="status-pill" [class]="app.status.toLowerCase()">{{ app.status }}</span>
+        </div>
+        <p class="reason" *ngIf="app.reason"><strong>Reason for Visit:</strong> {{ app.reason }}</p>
+        <p class="notes" *ngIf="app.notes"><strong>Doctor Notes:</strong> {{ app.notes }}</p>
+        <div class="consultation-link" *ngIf="app.consultationPdfUrl">
+          <a [href]="app.consultationPdfUrl" target="_blank" rel="noopener" class="pdf-link">
+            📄 View Consultation PDF Report
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Create Patient Folder Modal Overlay -->
+<div *ngIf="createModalOpen()" class="custom-modal-backdrop" (click)="closeCreateModal()">
+  <div class="custom-modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-patient-header">
+      <div>
+        <h2>+ Add Patient Folder</h2>
+        <p class="meta-sub">Select an existing clinic patient or register a new profile.</p>
+      </div>
+      <button class="close-btn" (click)="closeCreateModal()">&times;</button>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="mode-tabs">
+      <button
+        type="button"
+        [class.active]="createMode() === 'EXISTING'"
+        (click)="createMode.set('EXISTING')"
+      >
+        Select Existing Patient
+      </button>
+      <button
+        type="button"
+        [class.active]="createMode() === 'NEW'"
+        (click)="createMode.set('NEW')"
+      >
+        Register New Patient
+      </button>
+    </div>
+
+    <form (ngSubmit)="submitCreateFolder()" class="folder-form">
+
+      <!-- EXISTING PATIENT SELECTOR -->
+      <div *ngIf="createMode() === 'EXISTING'" class="form-group">
+        <label>Select Registered Patient *</label>
+        <app-spinner *ngIf="loadingPatientsList()" label="Loading registered patients…"></app-spinner>
+        
+        <select
+          *ngIf="!loadingPatientsList()"
+          [ngModel]="selectedPatientId()"
+          (ngModelChange)="selectedPatientId.set($event)"
+          name="selectedPatientId"
+          required
+          class="form-input"
+        >
+          <option [ngValue]="null" disabled>-- Choose a patient --</option>
+          <option *ngFor="let p of systemPatients()" [ngValue]="p.id">
+            {{ p.fullName }} ({{ p.email }})
+          </option>
+        </select>
+        <p class="help-text">Selecting a patient will create their active medical folder under your doctor roster.</p>
+      </div>
+
+      <!-- NEW PATIENT FORM -->
+      <div *ngIf="createMode() === 'NEW'">
+        <div class="form-group">
+          <label>Patient Full Name *</label>
+          <input type="text" [(ngModel)]="newPatientName" name="fullName" required placeholder="e.g. Sarah Connor" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Email Address *</label>
+          <input type="email" [(ngModel)]="newPatientEmail" name="email" required placeholder="e.g. sarah@example.com" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" [(ngModel)]="newPatientPhone" name="phone" placeholder="e.g. +1 555-0199" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" [(ngModel)]="newPatientDob" name="dateOfBirth" class="form-input" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Initial Consultation Notes / Medical History</label>
+        <textarea [(ngModel)]="newPatientNotes" name="initialNotes" rows="3" placeholder="Initial diagnosis, medical history, or consultation summary..." class="form-input"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" (click)="closeCreateModal()">Cancel</button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="creatingFolder() || (createMode() === 'EXISTING' && !selectedPatientId()) || (createMode() === 'NEW' && (!newPatientName.trim() || !newPatientEmail.trim()))"
+        >
+          {{ creatingFolder() ? 'Processing…' : 'Add to Patient Folders' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

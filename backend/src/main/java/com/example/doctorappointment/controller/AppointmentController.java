@@ -69,6 +69,14 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.getPatientFoldersByDoctor(doctorId));
     }
 
+    @PostMapping("/doctor/{doctorId}/patients")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR')")
+    public ResponseEntity<PatientFolderDTO> createPatientFolder(
+            @PathVariable Long doctorId,
+            @Valid @RequestBody com.example.doctorappointment.dto.request.CreatePatientFolderRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(appointmentService.createPatientFolder(doctorId, request));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancel(@PathVariable Long id) {
         appointmentService.cancelAppointment(id);

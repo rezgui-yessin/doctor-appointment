@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+import com.example.doctorappointment.dto.request.CreatePatientFolderRequestDTO;
+
 public interface AppointmentService {
     AppointmentResponseDTO bookAppointment(AppointmentRequestDTO request);
     AppointmentResponseDTO getById(Long id);
@@ -18,5 +20,6 @@ public interface AppointmentService {
     List<com.example.doctorappointment.dto.response.AvailableSlotDTO> getAvailableSlots(Long doctorId, java.time.LocalDate date);
     void cancelAppointment(Long id);
     List<PatientFolderDTO> getPatientFoldersByDoctor(Long doctorId);
+    PatientFolderDTO createPatientFolder(Long doctorId, CreatePatientFolderRequestDTO request);
 }
 

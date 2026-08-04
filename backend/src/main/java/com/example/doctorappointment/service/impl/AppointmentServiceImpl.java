@@ -285,4 +285,59 @@ public class AppointmentServiceImpl implements AppointmentService {
                 })
                 .toList();
     }
+
+    @Override
+    @Transactional
+    public PatientFolderDTO createPatientFolder(Long doctorId, com.example.doctorappointment.dto.request.CreatePatientFolderRequestDTO request) {
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found with id: " + doctorId));
+
+        Patient patient;
+        if (request.patientId() != null) {
+            patient = patientRepository.findById(request.patientId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id: " + request.patientId()));
+        } else if (request.email() != null && !request.email().isBlank()) {
+            patient = patientRepository.findByEmail(request.email())
+                    .orElseGet(() -> patientRepository.save(
+                            Patient.builder()
+                                    .fullName(request.fullName() != null ? request.fullName() : "Patient " + request.email())
+                                    .email(request.email())
+                                    .phone(request.phone() != null ? request.phone() : "555-0100")
+                                    .dateOfBirth(request.dateOfBirth())
+                                    .build()
+                    ));
+        } else {
+            throw new IllegalArgumentException("Either patientId or email must be provided");
+        }
+
+        // Create an initial consultation record linking doctor and patient folder
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        Appointment initialRecord = Appointment.builder()
+                .doctor(doctor)
+                .patient(patient)
+                .appointmentTime(now)
+                .reason(request.initialNotes() != null && !request.initialNotes().isBlank() 
+                        ? request.initialNotes() 
+                        : "Patient folder created by Dr. " + doctor.getFullName())
+                .status(AppointmentStatus.CONFIRMED)
+                .build();
+
+        appointmentRepository.save(initialRecord);
+
+        // Calculate total visits for this patient with doctor
+        List<Appointment> patientVisits = appointmentRepository.findByDoctorIdOrderByAppointmentTimeDesc(doctorId).stream()
+                .filter(a -> a.getPatient().getId().equals(patient.getId()))
+                .toList();
+
+        return new PatientFolderDTO(
+                patient.getId(),
+                patient.getFullName(),
+                patient.getEmail(),
+                patient.getPhone(),
+                patient.getPhotoUrl(),
+                patientVisits.size(),
+                now,
+                AppointmentStatus.CONFIRMED.name()
+        );
+    }
 }

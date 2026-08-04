@@ -1,0 +1,139 @@
+<div class="doctor-workspace">
+  <header class="workspace-header">
+    <div class="welcome-block">
+      <span class="eyebrow">Doctor Workspace</span>
+      <h1>Welcome back, Dr. {{ doctor()?.fullName || auth.email() }}</h1>
+      <p class="subtitle" *ngIf="doctor()?.specialization">Specialization: <strong>{{ doctor()?.specialization }}</strong></p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/doctor/patients" class="btn btn-primary">📁 View Patient Folders</a>
+      <a routerLink="/my-profile" class="btn btn-ghost">⚙ Edit Profile</a>
+    </div>
+  </header>
+
+  <!-- Metrics Row -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value">{{ stats.total }}</div>
+      <div class="metric-label">Total Appointments</div>
+    </div>
+    <div class="metric-card warning">
+      <div class="metric-value">{{ stats.pending }}</div>
+      <div class="metric-label">Pending Approval</div>
+    </div>
+    <div class="metric-card info">
+      <div class="metric-value">{{ stats.confirmed }}</div>
+      <div class="metric-label">Confirmed</div>
+    </div>
+    <div class="metric-card success">
+      <div class="metric-value">{{ stats.completed }}</div>
+      <div class="metric-label">Completed</div>
+    </div>
+  </div>
+
+  <!-- Filter & Agenda Section -->
+  <div class="agenda-section">
+    <div class="agenda-header">
+      <h2>Appointment Agenda</h2>
+      <div class="filter-pills">
+        <button [class.active]="statusFilter() === 'ALL'" (click)="statusFilter.set('ALL')">All</button>
+        <button [class.active]="statusFilter() === 'PENDING'" (click)="statusFilter.set('PENDING')">Pending</button>
+        <button [class.active]="statusFilter() === 'CONFIRMED'" (click)="statusFilter.set('CONFIRMED')">Confirmed</button>
+        <button [class.active]="statusFilter() === 'COMPLETED'" (click)="statusFilter.set('COMPLETED')">Completed</button>
+        <button [class.active]="statusFilter() === 'CANCELLED'" (click)="statusFilter.set('CANCELLED')">Cancelled</button>
+      </div>
+    </div>
+
+    <app-spinner *ngIf="loading()" label="Retrieving your schedule…"></app-spinner>
+
+    <div *ngIf="!loading() && filteredAppointments().length === 0" class="empty-state">
+      <div class="glyph">📅</div>
+      <h3>No appointments match the selected filter</h3>
+      <p>Appointments scheduled with you will show up here.</p>
+    </div>
+
+    <div class="appointments-list" *ngIf="!loading() && filteredAppointments().length > 0">
+      <div class="appointment-card card" *ngFor="let app of filteredAppointments()">
+        <div class="card-left">
+          <div class="time-box">
+            <span class="time">{{ app.appointmentTime | date:'shortTime' }}</span>
+            <span class="date">{{ app.appointmentTime | date:'mediumDate' }}</span>
+          </div>
+          <div class="patient-info">
+            <h3>Patient: {{ app.patientName }}</h3>
+            <p class="meta" *ngIf="app.reason"><strong>Reason:</strong> {{ app.reason }}</p>
+            <p class="meta" *ngIf="app.notes"><strong>Notes:</strong> {{ app.notes }}</p>
+          </div>
+        </div>
+
+        <div class="card-right">
+          <span class="status-pill" [class]="app.status.toLowerCase()">{{ app.status }}</span>
+
+          <div class="action-buttons">
+            <button
+              *ngIf="app.status === 'PENDING'"
+              class="btn btn-success btn-sm"
+              (click)="updateStatus(app, 'CONFIRMED')"
+            >
+              ✓ Confirm
+            </button>
+
+            <button
+              *ngIf="app.status === 'CONFIRMED' || app.status === 'PENDING'"
+              class="btn btn-accent btn-sm"
+              (click)="updateStatus(app, 'COMPLETED')"
+            >
+              ✓ Complete
+            </button>
+
+            <button
+              *ngIf="app.status !== 'CANCELLED' && app.status !== 'COMPLETED'"
+              class="btn btn-danger btn-sm"
+              (click)="updateStatus(app, 'CANCELLED')"
+            >
+              Cancel
+            </button>
+
+            <button
+              class="btn btn-ghost btn-sm"
+              (click)="openPdfUpload(app)"
+              title="Upload PDF Consultation Notes"
+            >
+              📄 {{ app.consultationPdfUrl ? 'Replace PDF' : 'Upload PDF' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="pdf-banner" *ngIf="app.consultationPdfUrl">
+          <span>📄 Consultation Document Attached:</span>
+          <a [href]="app.consultationPdfUrl" target="_blank" rel="noopener" class="pdf-link">
+            Open PDF Report &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Consultation PDF Upload Modal Overlay -->
+<div *ngIf="uploadModalApp()" class="custom-modal-backdrop" (click)="closePdfModal()">
+  <div class="custom-modal-dialog" (click)="$event.stopPropagation()">
+    <h2>Attach Consultation Notes (PDF)</h2>
+    <p class="modal-sub">Upload an official consultation PDF report for <strong>{{ uploadModalApp()?.patientName }}</strong> (Appointment #{{ uploadModalApp()?.id }}).</p>
+
+    <div class="file-upload-area">
+      <input type="file" accept="application/pdf" (change)="onFileSelected($event)" id="pdfInput" class="file-input" />
+      <label for="pdfInput" class="file-label">
+        <span *ngIf="!selectedPdfFile">📁 Click to select a PDF file (Max 20 MB)</span>
+        <span *ngIf="selectedPdfFile">📄 {{ selectedPdfFile.name }} ({{ (selectedPdfFile.size / 1024 / 1024).toFixed(2) }} MB)</span>
+      </label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closePdfModal()">Cancel</button>
+      <button class="btn btn-primary" [disabled]="!selectedPdfFile || uploadingPdf()" (click)="submitPdfUpload()">
+        {{ uploadingPdf() ? 'Uploading PDF…' : 'Upload Consultation Report' }}
+      </button>
+    </div>
+  </div>
+</div>

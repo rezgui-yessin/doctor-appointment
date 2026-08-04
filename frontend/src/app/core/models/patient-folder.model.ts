@@ -8,3 +8,12 @@ export interface PatientFolder {
   lastVisit: string;
   lastVisitStatus: string;
 }
+
+export interface CreatePatientFolderRequest {
+  patientId?: number;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  initialNotes?: string;
+}

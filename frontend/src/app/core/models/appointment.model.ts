@@ -10,6 +10,8 @@ export interface Appointment {
   appointmentTime: string;   // ISO-8601 LocalDateTime from backend e.g. "2026-07-25T09:00:00"
   status: AppointmentStatus;
   reason?: string;
+  notes?: string;
+  consultationPdfUrl?: string;
 }
 
 /** Matches the backend AppointmentRequestDTO */

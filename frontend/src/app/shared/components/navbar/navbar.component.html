@@ -6,6 +6,8 @@
 
   <div class="tabs">
     <a routerLink="/dashboard" routerLinkActive="active" class="tab">Dashboard</a>
+    <a *ngIf="auth.role() === 'DOCTOR'" routerLink="/doctor/dashboard" routerLinkActive="active" class="tab">Doctor Workspace</a>
+    <a *ngIf="auth.role() === 'DOCTOR' || auth.role() === 'ADMIN'" routerLink="/doctor/patients" routerLinkActive="active" class="tab">Patient Folders</a>
     <a routerLink="/doctors" routerLinkActive="active" class="tab">Doctors</a>
     <a *ngIf="auth.role() === 'PATIENT'" routerLink="/book" routerLinkActive="active" class="tab">Book visit</a>
     <a *ngIf="auth.role() !== 'PATIENT'" routerLink="/appointments" routerLinkActive="active" class="tab">Appointments</a>
